@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ניהול פרויקטים</title>
+
+    <!-- DataTables CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css"
+    />
+
+    <!-- SweetAlert2 CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-right">
+          <h1>ניהול פרויקטים</h1>
+        </div>
+        <div
+          class="header-left"
+          style="display: flex; align-items: center; gap: 16px"
+        >
+          <div class="user-info">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <div>
+              <div class="user-name" id="userName">משתמש</div>
+              <div class="user-role" id="userRole">משתמש</div>
+            </div>
+          </div>
+          <button id="logoutBtn" class="btn btn-outline btn-sm">התנתק</button>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="card">
+          <div class="card-header">
+            <h2>רשימת פרויקטים</h2>
+            <button
+              id="addProjectBtn"
+              class="btn btn-subtle-success"
+              style="display: none"
+            >
+              + הוסף פרויקט
+            </button>
+          </div>
+          <div class="card-body">
+            <table
+              id="projectsTable"
+              class="display"
+              style="width: 100%"
+            ></table>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Add Project Modal -->
+    <div id="addProjectModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>הוספת פרויקט חדש</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <form id="addProjectForm">
+          <div class="modal-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newProjectNumber">מספר פרויקט *</label>
+                <input type="text" id="newProjectNumber" required />
+              </div>
+              <div class="form-group">
+                <label for="newProjectName">שם הפרויקט *</label>
+                <input type="text" id="newProjectName" required />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newPriority">עדיפות</label>
+                <select id="newPriority" class="edit-select"></select>
+              </div>
+              <div class="form-group">
+                <label for="newAssignedTo">מוקצה ל *</label>
+                <select
+                  id="newAssignedTo"
+                  class="edit-select"
+                  required
+                ></select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newStatus">סטטוס</label>
+                <select id="newStatus" class="edit-select"></select>
+              </div>
+            </div>
+
+            <div class="form-row single">
+              <div class="form-group">
+                <label for="newNotes">הערות</label>
+                <input type="text" id="newNotes" />
+              </div>
+            </div>
+
+            <div class="form-row" style="grid-template-columns: repeat(3, 1fr)">
+              <div class="form-group">
+                <label for="newIdf">צה"ל</label>
+                <select id="newIdf" class="edit-select"></select>
+              </div>
+              <div class="form-group">
+                <label for="newBezeq">בזק</label>
+                <select id="newBezeq" class="edit-select"></select>
+              </div>
+              <div class="form-group">
+                <label for="newHot">הוט</label>
+                <select id="newHot" class="edit-select"></select>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-subtle-success">
+              שמור פרויקט
+            </button>
+            <button type="button" class="btn btn-outline modal-close">
+              ביטול
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="modal-overlay">
+      <div class="modal" style="max-width: 400px">
+        <div class="modal-header">
+          <h3>אישור מחיקה</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body confirm-dialog">
+          <p>
+            האם אתה בטוח שברצונך למחוק את הפרויקט<br /><strong
+              id="deleteProjectName"
+            ></strong
+            >?
+          </p>
+          <p style="color: var(--danger-color); font-size: 0.875rem">
+            פעולה זו אינה ניתנת לביטול
+          </p>
+        </div>
+        <div class="modal-footer" style="justify-content: center">
+          <button id="confirmDeleteBtn" class="btn btn-subtle-danger">
+            מחק
+          </button>
+          <button id="cancelDeleteBtn" class="btn btn-outline">ביטול</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- DataTables Core -->
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+    <!-- DataTables Buttons -->
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+
+    <!-- Excel Export (JSZip) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Application Data & Scripts -->
+    <script src="../data/enums.js"></script>
+    <script src="../data/projects.js"></script>
+    <script src="../data/users.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/app.js"></script>
+  </body>
+</html>
