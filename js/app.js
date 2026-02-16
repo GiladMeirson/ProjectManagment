@@ -122,7 +122,7 @@ const App = {
         },
         {
           data: "idf",
-          title: 'צה"ל',
+          title: 'חח"י',
           className: "editable-cell",
           render: (data) => this.renderYesNoBadge(data),
         },
