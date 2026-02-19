@@ -1,6 +1,7 @@
 /**
  * Authentication Module
- * Handles login, logout, and session management via localStorage
+ * Handles login, logout, and session management via localStorage.
+ * Login is performed via API call (ApiClient.signin) — requires clientLib.js.
  */
 
 const AUTH_KEYS = {
@@ -8,39 +9,54 @@ const AUTH_KEYS = {
   IS_LOGGED_IN: "pm_isLoggedIn",
 };
 
+const SESSION_TTL_MS = 4 * 24 * 60 * 60 * 1000; // 4 days
+
+function _setSession(user) {
+  const expiresAt = Date.now() + SESSION_TTL_MS;
+  localStorage.setItem(AUTH_KEYS.CURRENT_USER, JSON.stringify({ ...user, expiresAt }));
+  localStorage.setItem(AUTH_KEYS.IS_LOGGED_IN, "true");
+}
+
+function _isSessionExpired() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(AUTH_KEYS.CURRENT_USER) || "{}");
+    return !stored.expiresAt || Date.now() > stored.expiresAt;
+  } catch {
+    return true;
+  }
+}
+
 const Auth = {
   /**
-   * Attempt to log in a user with email and password
+   * Attempt to log in a user with email and password via the API.
+   * Async — results delivered via callbacks.
    * @param {string} email
    * @param {string} password
-   * @returns {object} Result with success status and user/error message
+   * @param {function} onSuccess - called on successful login
+   * @param {function} onError   - called with an error message string on failure
    */
-  login(email, password) {
+  login(email, password, onSuccess, onError) {
     if (!email || !password) {
-      return { success: false, error: "נא להזין אימייל וסיסמה" };
+      onError("נא להזין אימייל וסיסמה");
+      return;
     }
 
-    const user = USERS.find(
-      (u) =>
-        u.email.toLowerCase() === email.toLowerCase() &&
-        u.password === password,
-    );
-
-    if (!user) {
-      return { success: false, error: "אימייל או סיסמה שגויים" };
-    }
-
-    // Store user session (without password for security)
-    const sessionUser = {
-      username: user.username,
-      email: user.email,
-      role: user.role,
-    };
-
-    localStorage.setItem(AUTH_KEYS.CURRENT_USER, JSON.stringify(sessionUser));
-    localStorage.setItem(AUTH_KEYS.IS_LOGGED_IN, "true");
-
-    return { success: true, user: sessionUser };
+    ApiClient.signin(email, password)
+      .done(function (response) {
+        const u = response.user;
+        _setSession({
+          username: u.UserName,
+          email: u.Email,
+          role: u.Role,
+        });
+        onSuccess();
+      })
+      .fail(function (xhr) {
+        const msg =
+          (xhr.responseJSON && xhr.responseJSON.message) ||
+          "אימייל או סיסמה שגויים";
+        onError(msg);
+      });
   },
 
   /**
@@ -52,15 +68,20 @@ const Auth = {
   },
 
   /**
-   * Check if a user is currently logged in
+   * Check if a user is currently logged in (and session not expired)
    * @returns {boolean}
    */
   isLoggedIn() {
-    return localStorage.getItem(AUTH_KEYS.IS_LOGGED_IN) === "true";
+    if (localStorage.getItem(AUTH_KEYS.IS_LOGGED_IN) !== "true") return false;
+    if (_isSessionExpired()) {
+      this.logout();
+      return false;
+    }
+    return true;
   },
 
   /**
-   * Get the current logged-in user
+   * Get the current logged-in user (without internal session fields)
    * @returns {object|null}
    */
   getCurrentUser() {
@@ -68,7 +89,8 @@ const Auth = {
     if (!userJson) return null;
 
     try {
-      return JSON.parse(userJson);
+      const { expiresAt, ...user } = JSON.parse(userJson);
+      return user;
     } catch {
       return null;
     }
@@ -106,7 +128,7 @@ const Auth = {
   },
 
   /**
-   * Get all available users (for admin to assign projects)
+   * Get all available usernames (for admin to assign projects)
    * @returns {Array} List of usernames
    */
   getAllUsernames() {

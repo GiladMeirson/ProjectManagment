@@ -225,6 +225,8 @@ body {
 .app-container {
   min-height: 100vh;
   background: var(--gray-100);
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
@@ -285,6 +287,8 @@ body {
   padding: 24px;
   max-width: 1600px;
   margin: 0 auto;
+  flex: 1;
+  width: 100%;
 }
 
 .card {
@@ -941,4 +945,277 @@ table.dataTable thead .sorting_desc:after {
 .dt-button-excel {
   margin-left: 18px !important;
   line-height: 0.8rem !important;
+}
+
+/* ==========================================
+   Login Page — Enhanced Design
+   ========================================== */
+
+/* Body layout for login page */
+.login-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-page .login-container {
+  flex: 1;
+  min-height: auto;
+  padding: 40px 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Animated background shapes */
+.login-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.login-bg-shape {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.login-bg-shape:nth-child(1) {
+  width: 420px;
+  height: 420px;
+  top: -120px;
+  right: -80px;
+  animation: floatShape 18s ease-in-out infinite;
+}
+
+.login-bg-shape:nth-child(2) {
+  width: 620px;
+  height: 620px;
+  bottom: -220px;
+  left: -160px;
+  background: rgba(255, 255, 255, 0.05);
+  animation: floatShape 24s ease-in-out infinite;
+  animation-delay: -8s;
+}
+
+.login-bg-shape:nth-child(3) {
+  width: 220px;
+  height: 220px;
+  top: 45%;
+  left: 8%;
+  background: rgba(255, 255, 255, 0.04);
+  animation: floatShape 16s ease-in-out infinite;
+  animation-delay: -5s;
+}
+
+.login-bg-shape:nth-child(4) {
+  width: 160px;
+  height: 160px;
+  top: 15%;
+  right: 20%;
+  background: rgba(255, 255, 255, 0.06);
+  animation: floatShape 20s ease-in-out infinite;
+  animation-delay: -12s;
+}
+
+@keyframes floatShape {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(25px, -35px) scale(1.14);
+  }
+  66% {
+    transform: translate(-20px, 25px) scale(0.91);
+  }
+}
+
+/* Enhanced login box */
+.login-box {
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  padding: 48px 40px;
+}
+
+/* Logo wrapper */
+.login-logo-wrapper {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-logo-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 8px 24px rgba(102, 126, 234, 0.45),
+    0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.login-box .login-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.login-subtitle {
+  font-size: 0.875rem;
+  color: var(--gray-400);
+  text-align: center;
+}
+
+/* Input with icon */
+.input-wrapper {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 14px;
+  color: var(--gray-400);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  z-index: 1;
+  transition: color 0.2s;
+}
+
+.input-wrapper:focus-within .input-icon {
+  color: var(--primary-color);
+}
+
+.input-wrapper input {
+  padding-right: 44px !important;
+  padding-left: 44px !important;
+}
+
+/* Password visibility toggle */
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 12px;
+  background: none;
+  border: none;
+  color: var(--gray-400);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: color 0.2s;
+  line-height: 0;
+}
+
+.password-toggle:hover {
+  color: var(--gray-600);
+}
+
+/* Gradient login button */
+.btn-login {
+  width: 100%;
+  padding: 14px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow:
+    0 4px 15px rgba(102, 126, 234, 0.45),
+    0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+  margin-top: 4px;
+}
+
+.btn-login:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 28px rgba(102, 126, 234, 0.55),
+    0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.btn-login:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-login:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ==========================================
+   Footer Styles
+   ========================================== */
+.app-footer {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+  padding: 18px 32px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  z-index: 1;
+}
+
+.footer-inner {
+  max-width: 1600px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.footer-copy {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.footer-dev {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.footer-dev a {
+  color: #a78bfa;
+  text-decoration: none;
+  font-weight: 600;
+  transition:
+    color 0.2s,
+    text-shadow 0.2s;
+}
+
+.footer-dev a:hover {
+  color: #c4b5fd;
+  text-shadow: 0 0 12px rgba(167, 139, 250, 0.5);
+}
+
+/* Responsive footer */
+@media (max-width: 480px) {
+  .footer-inner {
+    flex-direction: column;
+    text-align: center;
+    gap: 4px;
+  }
+
+  .login-box {
+    padding: 32px 20px;
+  }
 }
