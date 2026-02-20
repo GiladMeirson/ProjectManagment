@@ -1,0 +1,299 @@
+/* ==========================================
+   Forms — .form-group, .form-row, inputs, selects, inline-edit
+   ========================================== */
+
+/* ---- Form group wrapper ---- */
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  font-family: var(--font);
+  color: var(--gray-800);
+  background: white;
+  direction: rtl;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* ---- Grid rows ---- */
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.form-row.single {
+  grid-template-columns: 1fr;
+}
+
+.form-row-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* ---- Inline-edit inputs (inside table cells) ---- */
+.edit-input,
+.edit-select {
+  width: 100%;
+  padding: 7px 11px;
+  border: 1.5px solid var(--primary-color);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-family: var(--font);
+  direction: rtl;
+  background: white;
+}
+
+.edit-input:focus,
+.edit-select:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+/* ---- Login: Input with leading icon ---- */
+.input-wrapper {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 14px;
+  color: var(--gray-400);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  z-index: 1;
+  transition: color 0.2s;
+}
+
+.input-wrapper:focus-within .input-icon {
+  color: var(--primary-color);
+}
+
+.input-wrapper input {
+  padding-right: 44px !important;
+  padding-left: 44px !important;
+}
+
+/* ---- Password visibility toggle ---- */
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 12px;
+  background: none;
+  border: none;
+  color: var(--gray-400);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: color 0.2s;
+  line-height: 0;
+}
+
+.password-toggle:hover {
+  color: var(--gray-600);
+}
+
+/* ---- Error message block ---- */
+.error-message {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: var(--danger-color);
+  padding: 11px 14px;
+  border-radius: var(--radius);
+  margin-bottom: 18px;
+  text-align: center;
+  font-size: 0.9rem;
+  display: none;
+}
+
+.error-message.show {
+  display: block;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .form-row,
+  .form-row-3 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Prevents iOS zoom on input focus */
+  .edit-input,
+  .edit-select {
+    font-size: 16px;
+  }
+}
+
+/* ==========================================
+   Custom Select Component — .cs-wrapper
+   ========================================== */
+
+.cs-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* ---- Trigger (the visible "button") ---- */
+.cs-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+  font-family: var(--font);
+  color: var(--gray-800);
+  background: white;
+  cursor: pointer;
+  user-select: none;
+  min-height: 42px;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.18s, color 0.18s;
+}
+
+.cs-trigger:hover {
+  border-color: var(--primary-color);
+}
+
+.cs-trigger:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.cs-trigger.open {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.cs-trigger-label {
+  flex: 1;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.cs-trigger-arrow {
+  flex-shrink: 0;
+  color: var(--gray-400);
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s;
+}
+
+.cs-trigger.open .cs-trigger-arrow {
+  transform: rotate(180deg);
+}
+
+/* ---- Dropdown panel ---- */
+.cs-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  background: white;
+  border: 1.5px solid var(--primary-color);
+  border-top: none;
+  border-bottom-left-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.13);
+  z-index: 9999;
+  max-height: 228px;
+  overflow-y: auto;
+  display: none;
+  padding: 4px;
+}
+
+.cs-dropdown.open {
+  display: block;
+  animation: csDropIn 0.15s ease;
+}
+
+@keyframes csDropIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Individual option rows ---- */
+.cs-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-family: var(--font);
+  direction: rtl;
+  transition: filter 0.1s;
+}
+
+.cs-option:hover {
+  filter: brightness(0.91);
+}
+
+.cs-option.selected {
+  font-weight: 700;
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+
+/* ---- Colour dot beside each option ---- */
+.cs-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+/* ---- Small / inline-edit variant ---- */
+.cs-sm .cs-trigger {
+  padding: 7px 11px;
+  font-size: 0.875rem;
+  min-height: 34px;
+  border-color: var(--primary-color);
+}
+
+.cs-sm .cs-trigger:focus,
+.cs-sm .cs-trigger.open {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.cs-sm .cs-dropdown {
+  font-size: 0.875rem;
+}

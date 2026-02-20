@@ -1,0 +1,243 @@
+/* ==========================================
+   Layout — App Shell, Header, Main, Card, Footer
+   ========================================== */
+
+/* ---- App Container ---- */
+.app-container {
+  min-height: 100vh;
+  background: #eef1f7;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Header ---- */
+.header {
+  background: #ffffff;
+  padding: 0 28px;
+  height: 64px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-top: 3px solid transparent;
+  border-image: var(--brand-gradient) 1;
+  box-shadow: 0 1px 0 var(--gray-200), 0 2px 12px rgb(0 0 0 / 0.04);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Branded icon tile next to the title */
+.header-logo {
+  width: 36px;
+  height: 36px;
+  background: var(--brand-gradient);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.32);
+}
+
+.header h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  letter-spacing: -0.02em;
+}
+
+/* ---- User Info Pill ---- */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 14px 5px 8px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 40px;
+  transition: background 0.15s;
+}
+
+.user-info:hover {
+  background: var(--gray-100);
+}
+
+.user-info .user-avatar {
+  width: 30px;
+  height: 30px;
+  background: var(--brand-gradient);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.user-info .user-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--gray-700);
+  line-height: 1.2;
+}
+
+.user-info .user-role {
+  font-size: 0.68rem;
+  color: var(--gray-400);
+  line-height: 1.2;
+}
+
+/* ---- Main Content ---- */
+.main-content {
+  padding: 28px;
+  max-width: 1600px;
+  margin: 0 auto;
+  flex: 1;
+  width: 100%;
+}
+
+/* ---- Card ---- */
+.card {
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.05),
+    0 8px 28px rgb(0 0 0 / 0.04);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--gray-50);
+  gap: 12px;
+}
+
+/* Title + count inline group */
+.card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-header h2 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--gray-700);
+  letter-spacing: -0.01em;
+}
+
+/* Pill badge showing total project count */
+.card-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 8px;
+  background: var(--brand-gradient);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.card-body {
+  padding: 20px 24px;
+}
+
+/* ---- Footer ---- */
+.app-footer {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+  padding: 18px 32px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  z-index: 1;
+}
+
+.footer-inner {
+  max-width: 1600px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.footer-copy {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.footer-dev {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.footer-dev a {
+  color: #a78bfa;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s, text-shadow 0.2s;
+}
+
+.footer-dev a:hover {
+  color: #c4b5fd;
+  text-shadow: 0 0 12px rgba(167, 139, 250, 0.5);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 1024px) {
+  .header {
+    flex-direction: column;
+    height: auto;
+    padding: 12px 20px;
+    gap: 10px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 12px;
+  }
+
+  .card-body {
+    padding: 12px;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-inner {
+    flex-direction: column;
+    text-align: center;
+    gap: 4px;
+  }
+}

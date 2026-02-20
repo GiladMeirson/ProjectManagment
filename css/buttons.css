@@ -1,0 +1,123 @@
+/* ==========================================
+   Buttons — .btn base + all variants
+   ========================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 20px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+/* ---- Filled variants ---- */
+.btn-primary {
+  background: var(--brand-gradient);
+  color: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.35);
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(102, 126, 234, 0.45);
+}
+
+.btn-success {
+  background: var(--success-color);
+  color: white;
+}
+
+.btn-success:hover {
+  background: #15803d;
+}
+
+.btn-danger {
+  background: var(--danger-color);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
+/* ---- Ghost / subtle variants ---- */
+.btn-subtle-success {
+  background: transparent;
+  color: var(--success-color);
+  border: 1.5px solid var(--success-color);
+}
+
+.btn-subtle-success:hover {
+  background: rgba(22, 163, 74, 0.08);
+}
+
+.btn-subtle-danger {
+  background: transparent;
+  color: var(--danger-color);
+  border: 1.5px solid var(--danger-color);
+}
+
+.btn-subtle-danger:hover {
+  background: rgba(220, 38, 38, 0.08);
+}
+
+.btn-subtle-primary {
+  background: transparent;
+  color: var(--primary-color);
+  border: 1.5px solid var(--primary-color);
+}
+
+.btn-subtle-primary:hover {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+/* ---- Outline (neutral) ---- */
+.btn-outline {
+  background: white;
+  color: var(--gray-700);
+  border: 1.5px solid var(--gray-300);
+}
+
+.btn-outline:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-400);
+}
+
+/* ---- Size modifiers ---- */
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+}
+
+/* ---- Icon-only square button ---- */
+.btn-icon {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.btn-icon.btn-subtle-danger {
+  border: 1px solid var(--gray-300);
+  color: var(--gray-500);
+}
+
+.btn-icon.btn-subtle-danger:hover {
+  border-color: var(--danger-color);
+  color: var(--danger-color);
+  background: rgba(220, 38, 38, 0.06);
+}

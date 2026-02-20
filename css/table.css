@@ -1,0 +1,205 @@
+/* ==========================================
+   Table — DataTables RTL overrides, sorting, pagination, export buttons
+   ========================================== */
+
+/* ---- Wrapper direction ---- */
+.dataTables_wrapper {
+  direction: rtl;
+}
+
+/* ---- Table base ---- */
+table.dataTable {
+  width: 100% !important;
+  border-collapse: collapse;
+  direction: rtl;
+}
+
+/* ---- Header cells ---- */
+table.dataTable thead th {
+  background: var(--gray-50);
+  color: var(--gray-500);
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 10px 16px !important;
+  text-align: center;
+  border-bottom: 2px solid var(--gray-200);
+  white-space: nowrap;
+}
+
+/* ---- Body cells ---- */
+table.dataTable tbody td {
+  padding: 11px 16px !important;
+  text-align: right;
+  border-bottom: 1px solid #e5e5e5;
+  vertical-align: middle;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: var(--gray-700);
+  transition: background-color 0.1s;
+  
+}
+
+/* Even row tint — subtle zebra */
+table.dataTable tbody tr:nth-child(even) td {
+  background-color: #fafbfd;
+}
+
+table.dataTable tbody tr:hover td {
+  background-color: #eef3ff !important;
+}
+
+table.dataTable tbody tr.selected td {
+  background-color: #dbeafe !important;
+}
+
+/* ---- Sorting icons — RTL fix ---- */
+table.dataTable thead .sorting,
+table.dataTable thead .sorting_asc,
+table.dataTable thead .sorting_desc {
+  background-position: right center !important;
+  padding-right: 30px !important;
+}
+
+table.dataTable thead .sorting:after,
+table.dataTable thead .sorting_asc:after,
+table.dataTable thead .sorting_desc:after {
+  left: 8px !important;
+  right: auto !important;
+}
+
+/* ---- DataTables controls toolbar ---- */
+.dataTables_filter {
+  float: left !important;
+  text-align: left !important;
+  margin-bottom: 14px;
+}
+
+.dataTables_filter label {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+}
+
+.dataTables_filter input {
+  padding: 7px 12px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  margin-right: 6px;
+  direction: rtl;
+  font-family: var(--font);
+  font-size: 0.875rem;
+  background: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.dataTables_filter input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.dataTables_length {
+  float: right !important;
+  margin-bottom: 14px;
+}
+
+.dataTables_length label {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+}
+
+.dataTables_length select {
+  padding: 6px 10px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  margin: 0 6px;
+  font-family: var(--font);
+  font-size: 0.875rem;
+  background: white;
+  cursor: pointer;
+}
+
+/* ---- Footer info & pagination ---- */
+.dataTables_info {
+  float: right !important;
+  padding-top: 14px;
+  color: var(--gray-400);
+  font-size: 0.8rem;
+}
+
+.dataTables_paginate {
+  float: left !important;
+  padding-top: 12px;
+}
+
+.dataTables_paginate .paginate_button {
+  padding: 5px 11px !important;
+  margin: 0 2px;
+  border-radius: var(--radius) !important;
+  border: 1px solid var(--gray-200) !important;
+  background: white !important;
+  color: var(--gray-600) !important;
+  font-size: 0.82rem;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+#projectsTable_wrapper .dataTables_paginate .paginate_button:hover {
+  background: var(--golden-hover) !important;
+  border-color: var(--gray-300) !important;
+  color: var(--gray-800) !important;
+}
+
+.dataTables_paginate .paginate_button.current {
+  background: var(--brand-gradient) !important;
+  border-color: transparent !important;
+  color: white !important;
+}
+
+.dataTables_paginate .paginate_button.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ---- Export / DataTables toolbar buttons ---- */
+.dt-buttons {
+  margin-bottom: 14px;
+}
+
+.dt-buttons .dt-button {
+  background: transparent !important;
+  color: var(--gray-600) !important;
+  border: 1px solid var(--gray-300) !important;
+  padding: 6px 14px !important;
+  border-radius: var(--radius) !important;
+  font-weight: 500;
+  font-size: 0.8rem;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.dt-buttons .dt-button:hover {
+  background: var(--gray-50) !important;
+  border-color: var(--gray-400) !important;
+  color: var(--gray-700) !important;
+}
+
+.dt-button-excel {
+  margin-left: 18px !important;
+  line-height: 0.8rem !important;
+}
+
+/* ---- Row action buttons ---- */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  table.dataTable {
+    min-width: 1000px;
+  }
+}

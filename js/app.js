@@ -5,6 +5,24 @@
 
 const STORAGE_KEY = "pm_projectsData";
 
+// Admin menu actions — add new entries here to extend the menu, no HTML changes needed
+const ADMIN_ACTIONS = [
+  {
+    label: "הוסף עובד חדש",
+    action: () => {
+      $("#adminMenuModal").removeClass("show");
+      $("#addEmployeeModal").addClass("show");
+    },
+  },
+  {
+    label: "הוסף פרויקט חדש",
+    action: () => {
+      $("#adminMenuModal").removeClass("show");
+      App.showAddModal();
+    },
+  },
+];
+
 // Application State
 const App = {
   table: null,
@@ -24,6 +42,10 @@ const App = {
     this.initDataTable();
     this.bindEvents();
     this.updateUIForRole();
+    this.buildAdminMenu();
+    this.updateProjectCount();
+    // Enhance static selects in the employee modal on first load
+    enhanceAllSelects(document.getElementById('addEmployeeModal'));
   },
 
   /**
@@ -69,13 +91,34 @@ const App = {
   },
 
   /**
+   * Update the project count badge in the card header
+   */
+  updateProjectCount() {
+    const el = document.getElementById("projectCount");
+    if (el) el.textContent = this.data.length;
+  },
+
+  /**
    * Update UI elements based on user role
    */
   updateUIForRole() {
-    const addBtn = document.getElementById("addProjectBtn");
-    if (addBtn) {
-      addBtn.style.display = Auth.isAdmin() ? "inline-flex" : "none";
+    const adminMenuBtn = document.getElementById("adminMenuBtn");
+    if (adminMenuBtn) {
+      adminMenuBtn.classList.toggle("hidden", !Auth.isAdmin());
     }
+  },
+
+  /**
+   * Build admin menu list from ADMIN_ACTIONS config
+   */
+  buildAdminMenu() {
+    if (!Auth.isAdmin()) return;
+    const $list = $("#adminMenuList").empty();
+    ADMIN_ACTIONS.forEach(({ label, action }) => {
+      $("<button>").addClass("admin-menu-item").text(label)
+        .on("click", action)
+        .appendTo($list);
+    });
   },
 
   /**
@@ -193,7 +236,7 @@ const App = {
           },
         },
       ],
-      pageLength: 25,
+      pageLength: 10,
       order: [[0, "asc"]],
       responsive: false,
       scrollX: true,
@@ -302,9 +345,12 @@ const App = {
 
     $cell.html(inputHtml);
     const $input = $cell.find("input, select");
-    $input.focus();
 
-    if ($input.is("input")) {
+    if ($input.is("select")) {
+      enhanceSelect($input[0]);
+      $cell.find(".cs-trigger").focus();
+    } else {
+      $input.focus();
       $input.select();
     }
 
@@ -330,18 +376,42 @@ const App = {
   bindEditEvents($cell, $input, rowIndex, columnName, originalValue) {
     const self = this;
 
-    $input.on("blur", function () {
-      self.saveCell($cell, rowIndex, columnName, $(this).val());
-    });
+    if ($input.is("select")) {
+      // Guard prevents double-save when both change and blur fire
+      let saved = false;
 
-    $input.on("keydown", function (e) {
-      if (e.key === "Enter") {
-        $(this).blur();
-      } else if (e.key === "Escape") {
-        // Restore original value
+      // Option chosen → fire change and save
+      $input.on("change", function () {
+        if (saved) return;
+        saved = true;
+        self.saveCell($cell, rowIndex, columnName, $(this).val());
+      });
+
+      // User clicked away without choosing → trigger loses focus → restore cell
+      $cell.find(".cs-trigger").on("blur", function () {
+        if (saved) return;
+        saved = true;
+        self.saveCell($cell, rowIndex, columnName, $input.val());
+      });
+
+      // Escape → restore original value
+      $cell.on("cs:escape", function () {
+        if (saved) return;
+        saved = true;
         self.table.cell($cell).data(originalValue).draw(false);
-      }
-    });
+      });
+    } else {
+      $input.on("blur", function () {
+        self.saveCell($cell, rowIndex, columnName, $(this).val());
+      });
+      $input.on("keydown", function (e) {
+        if (e.key === "Enter") {
+          $(this).blur();
+        } else if (e.key === "Escape") {
+          self.table.cell($cell).data(originalValue).draw(false);
+        }
+      });
+    }
   },
 
   /**
@@ -425,9 +495,15 @@ const App = {
       window.location.href = "login.html";
     });
 
-    // Add project button
-    $("#addProjectBtn").on("click", () => {
-      this.showAddModal();
+    // Admin menu button
+    $("#adminMenuBtn").on("click", () => {
+      $("#adminMenuModal").addClass("show");
+    });
+
+    // Add employee form submit
+    $("#addEmployeeForm").on("submit", (e) => {
+      e.preventDefault();
+      this.addEmployee();
     });
 
     // Modal close
@@ -459,6 +535,14 @@ const App = {
     // Reset form
     $("#addProjectForm")[0].reset();
 
+    // Refresh custom-select triggers that may have stale values after reset
+    $("#addProjectModal select[data-cs-enhanced]").each(function () {
+      if (this._csRefresh) this._csRefresh();
+    });
+
+    // Enhance any selects not yet enhanced (safe to call multiple times)
+    enhanceAllSelects(document.getElementById("addProjectModal"));
+
     // Show modal
     $("#addProjectModal").addClass("show");
   },
@@ -467,8 +551,7 @@ const App = {
    * Hide modal
    */
   hideModal() {
-    $("#addProjectModal").removeClass("show");
-    $("#deleteConfirmModal").removeClass("show");
+    $(".modal-overlay").removeClass("show");
   },
 
   /**
@@ -552,8 +635,42 @@ const App = {
     // Close modal
     this.hideModal();
 
+    this.updateProjectCount();
+
     // Show success message
     this.showToast("הפרויקט נוסף בהצלחה");
+  },
+
+  /**
+   * Add new employee via API
+   */
+  addEmployee() {
+    const userData = {
+      userName: $("#newEmpUserName").val().trim(),
+      email: $("#newEmpEmail").val().trim(),
+      password: $("#newEmpPassword").val(),
+      permissions: $("#newEmpPermissions").val(),
+      Role: $("#newEmpRole").val(),
+    };
+
+    startLoader("מוסיף עובד...");
+    ApiClient.signup(userData)
+      .done(() => {
+        stopLoader();
+        $("#addEmployeeModal").removeClass("show");
+        $("#addEmployeeForm")[0].reset();
+        this.showToast("העובד נוסף בהצלחה");
+      })
+      .fail((err) => {
+        stopLoader();
+        const msg = err.responseJSON?.message || "שגיאה בהוספת העובד";
+        Swal.fire({
+          icon: "error",
+          title: "שגיאה",
+          text: msg,
+          confirmButtonText: "אישור",
+        });
+      });
   },
 
   /**
@@ -593,6 +710,8 @@ const App = {
 
     // Close modal
     this.hideModal();
+
+    this.updateProjectCount();
 
     // Show success message
     this.showToast("הפרויקט נמחק בהצלחה");

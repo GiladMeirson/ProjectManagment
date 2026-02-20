@@ -8,33 +8,49 @@
     <!-- DataTables CSS -->
     <link
       rel="stylesheet"
-      href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css"
-    />
+      href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
     <link
       rel="stylesheet"
-      href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css"
-    />
+      href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css" />
 
     <!-- SweetAlert2 CSS -->
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
-    />
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="../css/style.css" />
+    <!-- App CSS — split by concern -->
+    <link rel="stylesheet" href="../css/base.css" />
+    <link rel="stylesheet" href="../css/layout.css" />
+    <link rel="stylesheet" href="../css/buttons.css" />
+    <link rel="stylesheet" href="../css/forms.css" />
+    <link rel="stylesheet" href="../css/badges.css" />
+    <link rel="stylesheet" href="../css/modals.css" />
+    <link rel="stylesheet" href="../css/table.css" />
+    <link rel="stylesheet" href="../css/utilities.css" />
   </head>
   <body>
     <div class="app-container">
+
       <!-- Header -->
       <header class="header">
         <div class="header-right">
+          <div class="header-logo" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M3 7a2 2 0 012-2h3.5l2 2H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"
+                fill="rgba(255,255,255,0.92)" />
+              <line x1="7" y1="13" x2="17" y2="13"
+                stroke="rgba(102,126,234,0.75)" stroke-width="1.5"
+                stroke-linecap="round" />
+              <line x1="7" y1="16" x2="13" y2="16"
+                stroke="rgba(102,126,234,0.55)" stroke-width="1.5"
+                stroke-linecap="round" />
+            </svg>
+          </div>
           <h1>ניהול פרויקטים</h1>
         </div>
-        <div
-          class="header-left"
-          style="display: flex; align-items: center; gap: 16px"
-        >
+        <div class="header-left">
           <div class="user-info">
             <div class="user-avatar" id="userAvatar">U</div>
             <div>
@@ -50,21 +66,23 @@
       <main class="main-content">
         <div class="card">
           <div class="card-header">
-            <h2>רשימת פרויקטים</h2>
-            <button
-              id="addProjectBtn"
-              class="btn btn-subtle-success"
-              style="display: none"
-            >
-              + הוסף פרויקט
+            <div class="card-title-group">
+              <h2>רשימת פרויקטים</h2>
+              <span class="card-count" id="projectCount"></span>
+            </div>
+            <button id="adminMenuBtn" class="btn btn-primary hidden">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="3" /><path
+                  d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+              </svg>
+              פעולות מנהל
             </button>
           </div>
           <div class="card-body">
-            <table
-              id="projectsTable"
-              class="display"
-              style="width: 100%"
-            ></table>
+            <table id="projectsTable" class="display"
+              style="width:100%"></table>
           </div>
         </div>
       </main>
@@ -72,8 +90,11 @@
       <!-- Footer -->
       <footer class="app-footer">
         <div class="footer-inner">
-          <span class="footer-copy">© 2026 ניהול פרויקטים | כל הזכויות שמורות</span>
-          <span class="footer-dev">פותח על ידי <a href="https://giladmeirson.github.io/Gilad_Meirson_website/" target="_blank" rel="noopener noreferrer">Gilad Meirson</a></span>
+          <span class="footer-copy">© 2026 ניהול פרויקטים | כל הזכויות
+            שמורות</span>
+          <span class="footer-dev">פותח על ידי <a
+              href="https://giladmeirson.github.io/Gilad_Meirson_website/"
+              target="_blank" rel="noopener noreferrer">Gilad Meirson</a></span>
         </div>
       </footer>
     </div>
@@ -105,11 +126,8 @@
               </div>
               <div class="form-group">
                 <label for="newAssignedTo">מוקצה ל *</label>
-                <select
-                  id="newAssignedTo"
-                  class="edit-select"
-                  required
-                ></select>
+                <select id="newAssignedTo" class="edit-select"
+                  required></select>
               </div>
             </div>
 
@@ -127,9 +145,9 @@
               </div>
             </div>
 
-            <div class="form-row" style="grid-template-columns: repeat(3, 1fr)">
+            <div class="form-row form-row-3">
               <div class="form-group">
-                <label for="newIdf">צה"ל</label>
+                <label for="newIdf">חח"י</label>
                 <select id="newIdf" class="edit-select"></select>
               </div>
               <div class="form-group">
@@ -143,12 +161,75 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-subtle-success">
-              שמור פרויקט
-            </button>
-            <button type="button" class="btn btn-outline modal-close">
-              ביטול
-            </button>
+            <button type="submit" class="btn btn-subtle-success">שמור
+              פרויקט</button>
+            <button type="button"
+              class="btn btn-subtle-danger">ביטול</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Admin Menu Modal -->
+    <div id="adminMenuModal" class="modal-overlay">
+      <div class="modal modal-sm">
+        <div class="modal-header">
+          <h3>פעולות מנהל</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div id="adminMenuList" class="admin-menu-list">
+          <!-- populated by App.buildAdminMenu() -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Employee Modal -->
+    <div id="addEmployeeModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>הוספת עובד חדש</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <form id="addEmployeeForm">
+          <div class="modal-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newEmpUserName">שם משתמש *</label>
+                <input type="text" id="newEmpUserName" required />
+              </div>
+              <div class="form-group">
+                <label for="newEmpEmail">אימייל *</label>
+                <input type="email" id="newEmpEmail" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newEmpPassword">סיסמה *</label>
+                <input type="password" id="newEmpPassword" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newEmpPermissions">הרשאות</label>
+                <select id="newEmpPermissions" class="edit-select">
+                  <option value="2" selected>עובד (2)</option>
+                  <option value="1">מנהל (1)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="newEmpRole">תפקיד</label>
+                <select id="newEmpRole" class="edit-select">
+                  <option value="employee" selected>עובד</option>
+                  <option value="admin">מנהל</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-subtle-success">הוסף
+              עובד</button>
+            <button type="button"
+              class="btn btn-subtle-danger">ביטול</button>
           </div>
         </form>
       </div>
@@ -156,27 +237,23 @@
 
     <!-- Delete Confirmation Modal -->
     <div id="deleteConfirmModal" class="modal-overlay">
-      <div class="modal" style="max-width: 400px">
+      <div class="modal modal-confirm">
         <div class="modal-header">
           <h3>אישור מחיקה</h3>
           <button class="modal-close">&times;</button>
         </div>
         <div class="modal-body confirm-dialog">
           <p>
-            האם אתה בטוח שברצונך למחוק את הפרויקט<br /><strong
-              id="deleteProjectName"
-            ></strong
-            >?
+            האם אתה בטוח שברצונך למחוק את הפרויקט<br />
+            <strong id="deleteProjectName"></strong>?
           </p>
-          <p style="color: var(--danger-color); font-size: 0.875rem">
-            פעולה זו אינה ניתנת לביטול
-          </p>
+          <p class="warning-text">פעולה זו אינה ניתנת לביטול</p>
         </div>
-        <div class="modal-footer" style="justify-content: center">
-          <button id="confirmDeleteBtn" class="btn btn-subtle-danger">
-            מחק
-          </button>
-          <button id="cancelDeleteBtn" class="btn btn-outline">ביטול</button>
+        <div class="modal-footer modal-footer-center">
+          <button id="confirmDeleteBtn"
+            class="btn btn-subtle-danger">מחק</button>
+          <button id="cancelDeleteBtn"
+            class="btn btn-subtle-danger">ביטול</button>
         </div>
       </div>
     </div>
@@ -186,23 +263,31 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <!-- DataTables Core -->
-    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script
+      src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 
     <!-- DataTables Buttons -->
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script
+      src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script
+      src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 
     <!-- Excel Export (JSZip) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Application Data & Scripts -->
+    <script src="../js/utils/loader.js"></script>
     <script src="../data/enums.js"></script>
     <script src="../data/projects.js"></script>
     <script src="../data/users.js"></script>
+    <script src="../js/utils/clientLib.js"></script>
+    <script src="../js/utils/customSelect.js"></script>
     <script src="../js/auth.js"></script>
     <script src="../js/app.js"></script>
+    <script src="../js/utils/onload.js"></script>
   </body>
 </html>

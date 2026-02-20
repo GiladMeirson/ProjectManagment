@@ -1,0 +1,129 @@
+/* ==========================================
+   Modals — Overlay, Dialog, Header, Body, Footer, Confirm
+   ========================================== */
+
+/* ---- Backdrop ---- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.22s, visibility 0.22s;
+}
+
+.modal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ---- Dialog box ---- */
+.modal {
+  background: white;
+  border-radius: 16px;
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.18),
+    0 4px 16px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: scale(0.96) translateY(10px);
+  transition: transform 0.22s ease;
+}
+
+.modal-overlay.show .modal {
+  transform: scale(1) translateY(0);
+}
+
+/* Size modifiers */
+.modal-sm {
+  max-width: 300px;
+}
+
+.modal-confirm {
+  max-width: 420px;
+}
+
+/* ---- Header ---- */
+.modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--gray-50);
+  border-radius: 16px 16px 0 0;
+}
+
+.modal-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gray-800);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--gray-400);
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.modal-close:hover {
+  background: var(--gray-200);
+  color: var(--danger-color);
+}
+
+/* ---- Body ---- */
+.modal-body {
+  padding: 35px;
+}
+
+/* ---- Footer ---- */
+.modal-footer {
+  padding: 14px 24px;
+  border-top: 1px solid var(--gray-200);
+  display: flex;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.modal-footer-center {
+  justify-content: center;
+}
+
+/* ---- Confirm dialog ---- */
+.confirm-dialog {
+  text-align: center;
+}
+
+.confirm-dialog p {
+  margin-bottom: 14px;
+  font-size: 1rem;
+  color: var(--gray-700);
+  line-height: 1.6;
+}
+
+.warning-text {
+  color: var(--danger-color);
+  font-size: 0.875rem;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .modal {
+    margin: 16px;
+    max-width: calc(100% - 32px);
+  }
+}

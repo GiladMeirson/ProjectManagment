@@ -20,4 +20,18 @@ const ApiClient = {
       data: JSON.stringify({ email, password }),
     });
   },
+
+  /**
+   * Register a new user (admin only)
+   * @param {{ email: string, password: string, userName: string, permissions: string, Role: string }} userData
+   * @returns {jQuery.Deferred}
+   */
+  signup(userData) {
+    return $.ajax({
+      url: `${this.BASE_URL}/users/signup`,
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(userData),
+    });
+  },
 };

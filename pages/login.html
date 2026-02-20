@@ -4,7 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>התחברות | ניהול פרויקטים</title>
-    <link rel="stylesheet" href="../css/style.css" />
+
+    <!-- App CSS — split by concern -->
+    <link rel="stylesheet" href="../css/base.css" />
+    <link rel="stylesheet" href="../css/layout.css" />
+    <link rel="stylesheet" href="../css/buttons.css" />
+    <link rel="stylesheet" href="../css/forms.css" />
+    <link rel="stylesheet" href="../css/login.css" />
+    <link rel="stylesheet" href="../css/utilities.css" />
   </head>
   <body class="login-page">
 
@@ -152,20 +159,6 @@
           : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
       });
     </script>
-
-    <style>
-      @keyframes shake {
-        0%,
-        100% {
-          transform: translateX(0);
-        }
-        25% {
-          transform: translateX(-10px);
-        }
-        75% {
-          transform: translateX(10px);
-        }
-      }
-    </style>
+    <script src="../js/utils/onload.js"></script>
   </body>
 </html>

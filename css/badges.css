@@ -1,0 +1,130 @@
+/* ==========================================
+   Badges — Status, Priority, Yes/No & Cell-edit indicators
+   ========================================== */
+
+/* ---- Base badge ---- */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+/* ---- Priority ---- */
+.badge-priority-urgent {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.badge-priority-new {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+.badge-priority-hold {
+  background: var(--gray-100);
+  color: var(--gray-600);
+  border: 1px solid var(--gray-300);
+}
+
+/* ---- Status ---- */
+.badge-status-waiting {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.badge-status-working {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.badge-status-review {
+  background: #e0e7ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+}
+
+.badge-status-updated {
+  background: #d1fae5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.badge-status-tender {
+  background: #f3e8ff;
+  color: #7c3aed;
+  border: 1px solid #e9d5ff;
+}
+
+.badge-status-execution {
+  background: #ccfbf1;
+  color: #0d9488;
+  border: 1px solid #99f6e4;
+}
+
+.badge-status-special {
+  background: #fce7f3;
+  color: #db2777;
+  border: 1px solid #fbcfe8;
+}
+
+/* ---- Yes / No / Empty ---- */
+.badge-yes {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.badge-no {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.badge-empty {
+  background: var(--gray-100);
+  color: var(--gray-400);
+}
+
+/* ---- Inline cell-edit indicators ---- */
+.editable-cell {
+  position: relative;
+}
+
+.editable-cell:hover::after {
+  content: "✏️";
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  opacity: 0.45;
+}
+
+.cell-locked {
+  cursor: not-allowed !important;
+  opacity: 0.7;
+}
+
+.cell-locked:hover {
+  background-color: inherit !important;
+}
+
+.cell-locked:hover::after {
+  content: "🔒" !important;
+}
+
+/* ---- Save flash animation ---- */
+@keyframes saveFlash {
+  0%   { background-color: #d1fae5; }
+  100% { background-color: transparent; }
+}
+
+.cell-saved {
+  animation: saveFlash 0.8s ease-out;
+}
