@@ -34,4 +34,11 @@ const ApiClient = {
       data: JSON.stringify(userData),
     });
   },
+
+  getAllProjects(){
+    return $.ajax({
+      url: `${this.BASE_URL}/projects`,
+      method: "GET",
+    });
+  }
 };

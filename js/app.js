@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Project Management Application
  * Main application logic with DataTable and inline editing
  */
@@ -164,7 +164,7 @@ const App = {
           className: "editable-cell",
         },
         {
-          data: "idf",
+          data: "chachi",
           title: 'חח"י',
           className: "editable-cell",
           render: (data) => this.renderYesNoBadge(data),
@@ -331,7 +331,7 @@ const App = {
       case "assigned_to":
         inputHtml = this.createSelect(currentValue, Auth.getAllUsernames());
         break;
-      case "idf":
+      case "chachi":
       case "bezeq":
       case "hot":
         inputHtml = this.createSelect(currentValue, [
@@ -581,7 +581,7 @@ const App = {
     });
 
     // Yes/No dropdowns
-    ["#newIdf", "#newBezeq", "#newHot"].forEach((selector) => {
+    ["#newChachi", "#newBezeq", "#newHot"].forEach((selector) => {
       const $select = $(selector);
       $select.empty();
       $select.append('<option value="">-- בחר --</option>');
@@ -602,7 +602,7 @@ const App = {
       assigned_to: $("#newAssignedTo").val(),
       status: $("#newStatus").val(),
       notes: $("#newNotes").val().trim(),
-      idf: $("#newIdf").val(),
+      chachi: $("#newChachi").val(),
       bezeq: $("#newBezeq").val(),
       hot: $("#newHot").val(),
     };
