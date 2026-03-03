@@ -120,29 +120,17 @@
               </div>
             </div>
 
-            <div class="form-row">
+            <div class="form-row single">
               <div class="form-group">
-                <label for="newPriority">עדיפות</label>
-                <select id="newPriority" class="edit-select"></select>
-              </div>
-              <div class="form-group">
-                <label for="newAssignedTo">מוקצה ל *</label>
-                <select id="newAssignedTo" class="edit-select"
-                  required></select>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="newStatus">סטטוס</label>
-                <select id="newStatus" class="edit-select"></select>
+                <label for="newAssignedTo">מוקצה ל</label>
+                <select id="newAssignedTo" class="edit-select"></select>
               </div>
             </div>
 
             <div class="form-row single">
               <div class="form-group">
-                <label for="newNotes">הערות</label>
-                <input type="text" id="newNotes" />
+                <label for="newInitialComment">הערה ראשונית</label>
+                <input type="text" id="newInitialComment" />
               </div>
             </div>
 
@@ -255,6 +243,32 @@
             class="btn btn-subtle-danger">מחק</button>
           <button id="cancelDeleteBtn"
             class="btn btn-subtle-danger">ביטול</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comments Modal -->
+    <div id="commentsModal" class="modal-overlay">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <div>
+            <h3 id="commentsModalTitle">הערות פרויקט</h3>
+            <span id="commentsModalSubtitle" class="modal-subtitle"></span>
+          </div>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body comments-modal-body" id="commentsModalBody">
+          <!-- comment cards injected by JS -->
+        </div>
+        <div class="modal-footer comments-modal-footer">
+          <div id="addCommentForm" class="add-comment-form hidden">
+            <textarea id="newCommentText" rows="3" placeholder="כתוב הערה..."></textarea>
+            <div class="add-comment-actions">
+              <button id="submitCommentBtn" class="btn btn-subtle-success">שמור הערה</button>
+              <button id="cancelCommentBtn" class="btn btn-subtle-danger">ביטול</button>
+            </div>
+          </div>
+          <button id="toggleAddCommentBtn" class="btn btn-primary">+ הוסף הערה</button>
         </div>
       </div>
     </div>

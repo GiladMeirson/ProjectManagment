@@ -48,6 +48,7 @@ const Auth = {
           username: u.UserName,
           email: u.Email,
           role: u.Role,
+          userId: u.UserId,
         });
         onSuccess();
       })
@@ -129,9 +130,11 @@ const Auth = {
 
   /**
    * Get all available usernames (for admin to assign projects)
-   * @returns {Array} List of usernames
+   * @returns {Promise<Array>} List of usernames
    */
-  getAllUsernames() {
-    return USERS.filter((u) => u.role !== "admin").map((u) => u.username);
+  async getAllUsernames() {
+    const response = await fetch("http://localhost:3000/users/names");
+    if (!response.ok) throw new Error("Failed to fetch usernames");
+    return response.json();
   },
 };

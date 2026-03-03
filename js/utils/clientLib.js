@@ -40,5 +40,55 @@ const ApiClient = {
       url: `${this.BASE_URL}/projects`,
       method: "GET",
     });
-  }
+  },
+
+  /**
+   * Create a new project
+   * @param {object} payload
+   * @returns {jQuery.Deferred}
+   */
+  createProject(payload) {
+    return $.ajax({
+      url: `${this.BASE_URL}/create/project`,
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(payload),
+    });
+  },
+
+  getCommentsByProjectId(projectId) {
+    return $.ajax({
+      url: `${this.BASE_URL}/projects/getCommentsByProjectId`,
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ projectId }),
+    });
+  },
+
+  addComment(payload) {
+    return $.ajax({
+      url: `${this.BASE_URL}/projects/addComment`,
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(payload),
+    });
+  },
+
+  editComment(payload) {
+    return $.ajax({
+      url: `${this.BASE_URL}/projects/editComment`,
+      method: "PUT",
+      contentType: "application/json",
+      data: JSON.stringify(payload),
+    });
+  },
+
+  deleteComment(commentId) {
+    return $.ajax({
+      url: `${this.BASE_URL}/projects/deleteComment`,
+      method: "DELETE",
+      contentType: "application/json",
+      data: JSON.stringify({ commentId }),
+    });
+  },
 };

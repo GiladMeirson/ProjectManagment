@@ -1,9 +1,7 @@
-﻿/**
+/**
  * Project Management Application
  * Main application logic with DataTable and inline editing
  */
-
-const STORAGE_KEY = "pm_projectsData";
 
 // Admin menu actions — add new entries here to extend the menu, no HTML changes needed
 const ADMIN_ACTIONS = [
@@ -28,50 +26,91 @@ const App = {
   table: null,
   data: [],
   currentUser: null,
+  _currentCommentsProjectId: null,
 
   /**
    * Initialize the application
    */
-  init() {
+  async init() {
     // Check authentication
     if (!Auth.requireAuth()) return;
 
     this.currentUser = Auth.getCurrentUser();
     this.renderUserInfo();
-    this.loadData();
-    this.initDataTable();
     this.bindEvents();
     this.updateUIForRole();
     this.buildAdminMenu();
-    this.updateProjectCount();
     // Enhance static selects in the employee modal on first load
     enhanceAllSelects(document.getElementById('addEmployeeModal'));
+
+    await this.loadData();
   },
 
   /**
-   * Load projects data from localStorage or default
+   * Fetch projects from API, transform and render table
    */
-  loadData() {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        this.data = JSON.parse(stored);
-      } catch {
-        this.data = [...PROJECTS];
-        this.saveData();
+  async loadData() {
+    startLoader("טוען פרויקטים...");
+    try {
+      const projects = await ApiClient.getAllProjects();
+      this.data = this.transformProjects(projects);
+
+      // Destroy existing table before re-initialising (e.g. after create)
+      if (this.table) {
+        this.table.destroy();
+        this.table = null;
+        $("#projectsTable").empty();
       }
-    } else {
-      // First time - use default data from projects.js
-      this.data = [...PROJECTS];
-      this.saveData();
+
+      this.initDataTable();
+      this.updateProjectCount();
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "שגיאה",
+        text: "לא ניתן לטעון פרויקטים מהשרת",
+        confirmButtonText: "אישור",
+      });
+    } finally {
+      stopLoader();
     }
   },
 
   /**
-   * Save data to localStorage
+   * Transform raw API projects to internal format and sort
    */
-  saveData() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
+  transformProjects(rawProjects) {
+    const transformed = rawProjects
+      .filter((p) => !p.IsDeleted)
+      .map((p) => ({
+        ProjectId: p.ProjectId,
+        ProjectNumber: p.ProjectNumber,
+        ProjectName: p.ProjectName,
+        Priority: p.Priority || PRIORITY.NEW,
+        AssignedTo: p.AssignedTo || "",
+        Status: p.Status || STATUS.WAITING,
+        Chachi: p.Chachi ? YES_NO.YES : YES_NO.NO,
+        ChachiIsExecuted: !!p.ChachiIsExecuted,
+        Bezeq: p.Bezeq ? YES_NO.YES : YES_NO.NO,
+        BezeqIsExecuted: !!p.BezeqIsExecuted,
+        Hot: p.Hot ? YES_NO.YES : YES_NO.NO,
+        HotIsExecuted: !!p.HotIsExecuted,
+        LastCommentText: p.LastCommentText || "",
+        LastCommentUserName: p.LastCommentUserName || "",
+        LastCommentUserRole: p.LastCommentUserRole || "",
+      }));
+
+    // Sort: current user's projects first
+    const me = this.currentUser.username;
+    transformed.sort((a, b) => {
+      const aIsMe = a.AssignedTo === me;
+      const bIsMe = b.AssignedTo === me;
+      if (aIsMe && !bIsMe) return -1;
+      if (!aIsMe && bIsMe) return 1;
+      return 0;
+    });
+
+    return transformed;
   },
 
   /**
@@ -131,55 +170,63 @@ const App = {
       data: this.data,
       columns: [
         {
-          data: "project_number",
+          data: "ProjectNumber",
           title: "מספר פרויקט",
-          className: "editable-cell",
         },
         {
-          data: "project",
+          data: "ProjectName",
           title: "שם הפרויקט",
-          className: "editable-cell",
         },
         {
-          data: "priority",
+          data: "Priority",
           title: "עדיפות",
-          className: "editable-cell",
           render: (data) => this.renderPriorityBadge(data),
         },
         {
-          data: "assigned_to",
+          data: "AssignedTo",
           title: "מוקצה ל",
-          className: "editable-cell",
-          render: (data) => `<span class="assigned-user">${data}</span>`,
+          render: (data) =>
+            data ? `<span class="assigned-user">${this.escapeHtml(data)}</span>` : '<span class="badge badge-empty">--</span>',
         },
         {
-          data: "status",
+          data: "Status",
           title: "סטטוס",
-          className: "editable-cell",
           render: (data) => this.renderStatusBadge(data),
         },
         {
-          data: "notes",
+          data: "LastCommentText",
           title: "הערות",
-          className: "editable-cell",
+          render: (data, _type, row) => {
+            if (!data) return '<span class="badge badge-empty">--</span>';
+            const isAdmin = row.LastCommentUserRole === "admin";
+            const displayName = isAdmin ? "מנהל מערכת" : this.escapeHtml(row.LastCommentUserName || "");
+            const truncated = data.length > 45 ? data.substring(0, 45) + "..." : data;
+            return `<span class="comment-cell"
+              data-project-id="${row.ProjectId}"
+              data-project-name="${this.escapeHtml(row.ProjectName)}"
+              ><strong class="comment-author">${displayName}:</strong> ${this.escapeHtml(truncated)}</span>`;
+          },
         },
         {
-          data: "chachi",
+          data: "Chachi",
           title: 'חח"י',
           className: "editable-cell",
-          render: (data) => this.renderYesNoBadge(data),
+          render: (data, _type, row) =>
+            this.renderYesNoWithExecuted(data, row.ChachiIsExecuted),
         },
         {
-          data: "bezeq",
+          data: "Bezeq",
           title: "בזק",
           className: "editable-cell",
-          render: (data) => this.renderYesNoBadge(data),
+          render: (data, _type, row) =>
+            this.renderYesNoWithExecuted(data, row.BezeqIsExecuted),
         },
         {
-          data: "hot",
+          data: "Hot",
           title: "הוט",
           className: "editable-cell",
-          render: (data) => this.renderYesNoBadge(data),
+          render: (data, _type, row) =>
+            this.renderYesNoWithExecuted(data, row.HotIsExecuted),
         },
         {
           data: null,
@@ -187,17 +234,17 @@ const App = {
           orderable: false,
           searchable: false,
           className: "text-center",
-          render: (data, type, row, meta) => {
+          render: (_data, _type, _row, meta) => {
             if (!Auth.isAdmin()) return "";
             return `
-                            <div class="action-buttons">
-                                <button class="btn btn-subtle-danger btn-icon btn-sm delete-btn" 
-                                        data-row="${meta.row}" 
-                                        title="מחק פרויקט">
-                                    ✕
-                                </button>
-                            </div>
-                        `;
+              <div class="action-buttons">
+                <button class="btn btn-subtle-danger btn-icon btn-sm delete-btn"
+                        data-row="${meta.row}"
+                        title="מחק פרויקט">
+                  ✕
+                </button>
+              </div>
+            `;
           },
         },
       ],
@@ -226,7 +273,7 @@ const App = {
           exportOptions: {
             columns: ":not(:last-child)",
             format: {
-              body: function (data, row, column, node) {
+              body: function (data, _row, _column, _node) {
                 // Strip HTML tags for export
                 const temp = document.createElement("div");
                 temp.innerHTML = data;
@@ -236,15 +283,32 @@ const App = {
           },
         },
       ],
-      pageLength: 10,
-      order: [[0, "asc"]],
+      pageLength: 50,
+      order: [],
       responsive: false,
       scrollX: true,
     });
 
-    // Handle cell click for editing
-    $("#projectsTable tbody").on("click", "td.editable-cell", function () {
+    // Handle cell click for YES/NO inline editing (Chachi/Bezeq/Hot columns only)
+    $("#projectsTable tbody").on("click", "td.editable-cell", function (e) {
+      // Don't open select when clicking on the checkbox itself
+      if ($(e.target).hasClass("executed-check")) return;
       self.handleCellClick(this);
+    });
+
+    // Handle IsExecuted checkbox change (admin only)
+    $("#projectsTable tbody").on("change", ".executed-check", function () {
+      if (!Auth.isAdmin()) return;
+      const $cell = $(this).closest("td");
+      const row = self.table.row($cell.parent());
+      const rowIndex = row.index();
+      const colIndex = $cell.index();
+      const columns = self.table.settings().init().columns;
+      const columnName = columns[colIndex].data; // "Chachi", "Bezeq", or "Hot"
+      const executedField = columnName + "IsExecuted";
+      self.data[rowIndex][executedField] = this.checked;
+      // Redraw cell without full table redraw
+      self.table.row(rowIndex).data(self.data[rowIndex]).draw(false);
     });
 
     // Handle delete button click
@@ -253,10 +317,17 @@ const App = {
       const rowIndex = $(this).data("row");
       self.confirmDelete(rowIndex);
     });
+
+    // Handle comment cell click — open full comments modal
+    $("#projectsTable tbody").on("click", ".comment-cell", function (e) {
+      e.stopPropagation();
+      const $el = $(this);
+      self.openCommentsModal($el.data("project-id"), $el.data("project-name"));
+    });
   },
 
   /**
-   * Handle cell click for inline editing
+   * Handle cell click for inline editing (Chachi/Bezeq/Hot only)
    */
   handleCellClick(cell) {
     const $cell = $(cell);
@@ -267,11 +338,14 @@ const App = {
     const columns = this.table.settings().init().columns;
     const columnName = columns[columnIndex].data;
 
+    // Only allow editing Chachi / Bezeq / Hot
+    if (!["Chachi", "Bezeq", "Hot"].includes(columnName)) return;
+
     // Skip if already editing
     if ($cell.find("input, select").length > 0) return;
 
-    // Check permissions
-    if (!this.canEditCell(rowData, columnName)) {
+    // Permission check for non-admins: only own projects
+    if (!Auth.isAdmin() && rowData.AssignedTo !== this.currentUser.username) {
       this.showLockedMessage();
       return;
     }
@@ -281,78 +355,28 @@ const App = {
   },
 
   /**
-   * Check if current user can edit a specific cell
-   */
-  canEditCell(rowData, columnName) {
-    // Admin can edit everything
-    if (Auth.isAdmin()) return true;
-
-    // assigned_to field is locked for non-admins
-    if (columnName === "assigned_to") return false;
-
-    // Users can only edit their own projects
-    return rowData.assigned_to === this.currentUser.username;
-  },
-
-  /**
    * Show message when cell is locked
    */
   showLockedMessage() {
-    const msg = Auth.isAdmin() ? "" : "אין לך הרשאה לערוך שדה זה";
-    if (msg) {
-      Swal.fire({
-        icon: "warning",
-        title: "אין הרשאה",
-        text: msg,
-        confirmButtonText: "אישור",
-        customClass: {
-          confirmButton: "swal-btn",
-        },
-      });
-    }
+    Swal.fire({
+      icon: "warning",
+      title: "אין הרשאה",
+      text: "אין לך הרשאה לערוך שדה זה",
+      confirmButtonText: "אישור",
+      customClass: { confirmButton: "swal-btn" },
+    });
   },
 
   /**
-   * Create edit control based on column type
+   * Create YES/NO select edit control
    */
   createEditControl($cell, rowIndex, columnName, currentValue) {
-    let inputHtml;
-
-    switch (columnName) {
-      case "priority":
-        inputHtml = this.createSelect(currentValue, Object.values(PRIORITY));
-        break;
-      case "status":
-        inputHtml = this.createSelect(currentValue, [
-          "",
-          ...Object.values(STATUS),
-        ]);
-        break;
-      case "assigned_to":
-        inputHtml = this.createSelect(currentValue, Auth.getAllUsernames());
-        break;
-      case "chachi":
-      case "bezeq":
-      case "hot":
-        inputHtml = this.createSelect(currentValue, [
-          "",
-          ...Object.values(YES_NO),
-        ]);
-        break;
-      default:
-        inputHtml = `<input type="text" class="edit-input" value="${this.escapeHtml(currentValue)}" />`;
-    }
-
+    const inputHtml = this.createSelect(currentValue, Object.values(YES_NO));
     $cell.html(inputHtml);
-    const $input = $cell.find("input, select");
+    const $input = $cell.find("select");
 
-    if ($input.is("select")) {
-      enhanceSelect($input[0]);
-      $cell.find(".cs-trigger").focus();
-    } else {
-      $input.focus();
-      $input.select();
-    }
+    enhanceSelect($input[0]);
+    $cell.find(".cs-trigger").focus();
 
     this.bindEditEvents($cell, $input, rowIndex, columnName, currentValue);
   },
@@ -375,56 +399,32 @@ const App = {
    */
   bindEditEvents($cell, $input, rowIndex, columnName, originalValue) {
     const self = this;
+    let saved = false;
 
-    if ($input.is("select")) {
-      // Guard prevents double-save when both change and blur fire
-      let saved = false;
+    $input.on("change", function () {
+      if (saved) return;
+      saved = true;
+      self.saveCell($cell, rowIndex, columnName, $(this).val());
+    });
 
-      // Option chosen → fire change and save
-      $input.on("change", function () {
-        if (saved) return;
-        saved = true;
-        self.saveCell($cell, rowIndex, columnName, $(this).val());
-      });
+    $cell.find(".cs-trigger").on("blur", function () {
+      if (saved) return;
+      saved = true;
+      self.saveCell($cell, rowIndex, columnName, $input.val());
+    });
 
-      // User clicked away without choosing → trigger loses focus → restore cell
-      $cell.find(".cs-trigger").on("blur", function () {
-        if (saved) return;
-        saved = true;
-        self.saveCell($cell, rowIndex, columnName, $input.val());
-      });
-
-      // Escape → restore original value
-      $cell.on("cs:escape", function () {
-        if (saved) return;
-        saved = true;
-        self.table.cell($cell).data(originalValue).draw(false);
-      });
-    } else {
-      $input.on("blur", function () {
-        self.saveCell($cell, rowIndex, columnName, $(this).val());
-      });
-      $input.on("keydown", function (e) {
-        if (e.key === "Enter") {
-          $(this).blur();
-        } else if (e.key === "Escape") {
-          self.table.cell($cell).data(originalValue).draw(false);
-        }
-      });
-    }
+    $cell.on("cs:escape", function () {
+      if (saved) return;
+      saved = true;
+      self.table.cell($cell).data(originalValue).draw(false);
+    });
   },
 
   /**
-   * Save cell value
+   * Save cell value (in-memory only, no server call)
    */
   saveCell($cell, rowIndex, columnName, newValue) {
-    // Update data array
     this.data[rowIndex][columnName] = newValue;
-
-    // Save to localStorage
-    this.saveData();
-
-    // Update DataTable
     this.table.row(rowIndex).data(this.data[rowIndex]).draw(false);
 
     // Visual feedback
@@ -470,9 +470,26 @@ const App = {
    */
   renderYesNoBadge(value) {
     if (!value) return '<span class="badge badge-empty">--</span>';
-
     const badgeClass = value === YES_NO.YES ? "badge-yes" : "badge-no";
     return `<span class="badge ${badgeClass}">${this.escapeHtml(value)}</span>`;
+  },
+
+  /**
+   * Render Yes/No badge with optional IsExecuted checkbox (shown only when value is כן)
+   */
+  renderYesNoWithExecuted(value, isExecuted) {
+    const badge = this.renderYesNoBadge(value);
+    if (value !== YES_NO.YES) return badge;
+
+    const checkedAttr = isExecuted ? "checked" : "";
+    const disabledAttr = Auth.isAdmin() ? "" : "disabled";
+    return `<div class="yes-no-cell">
+      ${badge}
+      <label class="executed-label">
+        <input type="checkbox" class="executed-check" ${checkedAttr} ${disabledAttr} />
+        <span class="executed-text">האם בוצע</span>
+      </label>
+    </div>`;
   },
 
   /**
@@ -523,16 +540,16 @@ const App = {
     $(".modal").on("click", (e) => {
       e.stopPropagation();
     });
+
+    this.bindCommentsModalFooterEvents();
   },
 
   /**
    * Show add project modal
    */
-  showAddModal() {
-    // Populate dropdowns
-    this.populateModalDropdowns();
+  async showAddModal() {
+    await this.populateModalDropdowns();
 
-    // Reset form
     $("#addProjectForm")[0].reset();
 
     // Refresh custom-select triggers that may have stale values after reset
@@ -540,10 +557,8 @@ const App = {
       if (this._csRefresh) this._csRefresh();
     });
 
-    // Enhance any selects not yet enhanced (safe to call multiple times)
     enhanceAllSelects(document.getElementById("addProjectModal"));
 
-    // Show modal
     $("#addProjectModal").addClass("show");
   },
 
@@ -557,26 +572,13 @@ const App = {
   /**
    * Populate modal dropdowns with enum values
    */
-  populateModalDropdowns() {
-    // Priority dropdown
-    const $priority = $("#newPriority");
-    $priority.empty();
-    Object.values(PRIORITY).forEach((val) => {
-      $priority.append(`<option value="${val}">${val}</option>`);
-    });
-
-    // Status dropdown
-    const $status = $("#newStatus");
-    $status.empty();
-    $status.append('<option value="">-- בחר --</option>');
-    Object.values(STATUS).forEach((val) => {
-      $status.append(`<option value="${val}">${val}</option>`);
-    });
-
+  async populateModalDropdowns() {
     // Assigned to dropdown
     const $assigned = $("#newAssignedTo");
     $assigned.empty();
-    Auth.getAllUsernames().forEach((name) => {
+    $assigned.append('<option value="">-- בחר --</option>');
+    const usernames = await Auth.getAllUsernames();
+    usernames.forEach((name) => {
       $assigned.append(`<option value="${name}">${name}</option>`);
     });
 
@@ -592,53 +594,63 @@ const App = {
   },
 
   /**
-   * Add new project
+   * Add new project via API
    */
-  addProject() {
-    const newProject = {
-      project_number: $("#newProjectNumber").val().trim(),
-      project: $("#newProjectName").val().trim(),
-      priority: $("#newPriority").val(),
-      assigned_to: $("#newAssignedTo").val(),
-      status: $("#newStatus").val(),
-      notes: $("#newNotes").val().trim(),
-      chachi: $("#newChachi").val(),
-      bezeq: $("#newBezeq").val(),
-      hot: $("#newHot").val(),
-    };
+  async addProject() {
+    const projectNumber = $("#newProjectNumber").val().trim();
+    const projectName   = $("#newProjectName").val().trim();
+    const assignedTo    = $("#newAssignedTo").val();
+    const chachi        = $("#newChachi").val();
+    const bezeq         = $("#newBezeq").val();
+    const hot           = $("#newHot").val();
+    const comment       = $("#newInitialComment").val().trim();
 
-    // Validate required fields
-    if (
-      !newProject.project_number ||
-      !newProject.project ||
-      !newProject.assigned_to
-    ) {
+    if (!projectNumber || !projectName) {
       Swal.fire({
         icon: "error",
         title: "שדות חסרים",
-        text: "נא למלא את השדות הנדרשים: מספר פרויקט, שם הפרויקט, מוקצה ל",
+        text: "נא למלא את השדות הנדרשים: מספר פרויקט, שם הפרויקט",
         confirmButtonText: "אישור",
-        customClass: {
-          confirmButton: "swal-btn",
-        },
+        customClass: { confirmButton: "swal-btn" },
       });
       return;
     }
 
-    // Add to data
-    this.data.push(newProject);
-    this.saveData();
+    const payload = {
+      ProjectNumber:    projectNumber,
+      ProjectName:      projectName,
+      Priority:         PRIORITY.NEW,
+      AssignedTo:       assignedTo || null,
+      Status:           STATUS.WAITING,
+      Chachi:           chachi === YES_NO.YES,
+      ChachiIsExecuted: false,
+      Bezeq:            bezeq === YES_NO.YES,
+      BezeqIsExecuted:  false,
+      Hot:              hot === YES_NO.YES,
+      HotIsExecuted:    false,
+      InitialComment:   comment || null,
+      UserId:           this.currentUser.userId,
+      UserName:         this.currentUser.username,
+      UserRole:         this.currentUser.role,
+    };
 
-    // Update table
-    this.table.row.add(newProject).draw();
-
-    // Close modal
-    this.hideModal();
-
-    this.updateProjectCount();
-
-    // Show success message
-    this.showToast("הפרויקט נוסף בהצלחה");
+    startLoader("שומר פרויקט...");
+    try {
+      await ApiClient.createProject(payload);
+      stopLoader();
+      this.hideModal();
+      await this.loadData();
+      this.showToast("הפרויקט נוסף בהצלחה");
+    } catch (err) {
+      stopLoader();
+      const msg = err.responseJSON?.message || "שגיאה בהוספת הפרויקט";
+      Swal.fire({
+        icon: "error",
+        title: "שגיאה",
+        text: msg,
+        confirmButtonText: "אישור",
+      });
+    }
   },
 
   /**
@@ -678,18 +690,16 @@ const App = {
    */
   confirmDelete(rowIndex) {
     const project = this.data[rowIndex];
-    $("#deleteProjectName").text(project.project);
+    $("#deleteProjectName").text(project.ProjectName);
     $("#confirmDeleteBtn").data("row", rowIndex);
     $("#deleteConfirmModal").addClass("show");
 
-    // Bind confirm button
     $("#confirmDeleteBtn")
       .off("click")
       .on("click", () => {
         this.deleteProject(rowIndex);
       });
 
-    // Bind cancel button
     $("#cancelDeleteBtn")
       .off("click")
       .on("click", () => {
@@ -698,23 +708,261 @@ const App = {
   },
 
   /**
-   * Delete project
+   * Delete project (in-memory only, no server endpoint yet)
    */
   deleteProject(rowIndex) {
-    // Remove from data
     this.data.splice(rowIndex, 1);
-    this.saveData();
 
-    // Remove from table
     this.table.clear().rows.add(this.data).draw();
 
-    // Close modal
     this.hideModal();
-
     this.updateProjectCount();
-
-    // Show success message
     this.showToast("הפרויקט נמחק בהצלחה");
+  },
+
+  // ==========================================
+  // Comments Modal
+  // ==========================================
+
+  /**
+   * Check if current user can edit or delete a comment
+   */
+  canModifyComment(comment) {
+    if (Auth.isAdmin()) return true;
+    return Number(comment.UserId) === Number(this.currentUser.userId);
+  },
+
+  /**
+   * Format a Unix-ms timestamp to DD/MM/YYYY HH:MM
+   */
+  formatCommentDate(timestamp) {
+    if (!timestamp) return "";
+    const d = new Date(Number(timestamp));
+    if (isNaN(d.getTime())) return "";
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  },
+
+  /**
+   * Open the comments modal for a given project
+   */
+  openCommentsModal(projectId, projectName) {
+    this._currentCommentsProjectId = projectId;
+    $("#commentsModalTitle").text(projectName || "הערות פרויקט");
+    $("#commentsModalSubtitle").text("");
+    // Reset add form
+    $("#addCommentForm").addClass("hidden");
+    $("#newCommentText").val("");
+    $("#toggleAddCommentBtn").text("+ הוסף הערה");
+    $("#commentsModal").addClass("show");
+    this.loadComments(projectId);
+  },
+
+  /**
+   * Fetch all comments for the given project and render them
+   */
+  loadComments(projectId) {
+    startLoader("טוען הערות...");
+    ApiClient.getCommentsByProjectId(projectId)
+      .done((comments) => {
+        this.renderComments(comments);
+      })
+      .fail(() => {
+        this.showToast("שגיאה בטעינת הערות");
+        $("#commentsModalBody").html('<p class="comments-empty">לא ניתן לטעון הערות</p>');
+      })
+      .always(() => {
+        stopLoader();
+      });
+  },
+
+  /**
+   * Build and inject comment cards into the modal body
+   */
+  renderComments(comments) {
+    const $body = $("#commentsModalBody");
+    const count = comments.length;
+    $("#commentsModalSubtitle").text(count === 0 ? "אין הערות" : `${count} הערות`);
+
+    if (count === 0) {
+      $body.html('<p class="comments-empty">אין הערות לפרויקט זה עדיין</p>');
+      return;
+    }
+
+    const html = comments.map((c) => {
+      const isAdmin = c.UserRole === "admin";
+      const authorName = isAdmin ? "מנהל מערכת" : this.escapeHtml(c.UserName || "");
+      const timeStr = this.formatCommentDate(c.CreatedAt);
+      const canModify = this.canModifyComment(c);
+      const actionButtons = canModify
+        ? `<div class="comment-actions">
+            <button class="btn-icon edit-comment-btn" data-comment-id="${c.CommentId}" title="ערוך">✎</button>
+            <button class="btn-icon delete-comment-btn" data-comment-id="${c.CommentId}" title="מחק">🗑</button>
+          </div>`
+        : "";
+
+      return `<div class="comment-card" data-comment-id="${c.CommentId}" data-user-id="${c.UserId}">
+        <div class="comment-header">
+          <div class="comment-meta">
+            <span class="comment-author-name">${authorName}</span>
+            <span class="comment-time">${timeStr}</span>
+          </div>
+          ${actionButtons}
+        </div>
+        <div class="comment-body">
+          <p class="comment-text">${this.escapeHtml(c.CommentText)}</p>
+          <textarea class="comment-edit-textarea hidden">${this.escapeHtml(c.CommentText)}</textarea>
+          <div class="comment-edit-actions hidden">
+            <button class="save-edit-btn btn btn-subtle-success" data-comment-id="${c.CommentId}">שמור</button>
+            <button class="cancel-edit-btn btn btn-subtle-danger">ביטול</button>
+          </div>
+          <div class="comment-delete-confirm hidden">
+            <span>האם למחוק הערה זו?</span>
+            <button class="confirm-delete-btn btn btn-subtle-danger" data-comment-id="${c.CommentId}">מחק</button>
+            <button class="cancel-delete-btn btn btn-outline">ביטול</button>
+          </div>
+        </div>
+      </div>`;
+    }).join("");
+
+    $body.html(html);
+    this.bindCommentCardEvents();
+  },
+
+  /**
+   * Bind inline edit / delete interactions on comment cards
+   */
+  bindCommentCardEvents() {
+    const $body = $("#commentsModalBody");
+    // Unbind before rebinding to avoid duplicate handlers
+    $body.off("click");
+
+    // Show inline edit form
+    $body.on("click", ".edit-comment-btn", function () {
+      const $card = $(this).closest(".comment-card");
+      $card.find(".comment-text").addClass("hidden");
+      $card.find(".comment-edit-textarea").removeClass("hidden").focus();
+      $card.find(".comment-edit-actions").removeClass("hidden");
+      $card.find(".comment-actions").addClass("hidden");
+      $card.find(".comment-delete-confirm").addClass("hidden");
+    });
+
+    // Cancel edit
+    $body.on("click", ".cancel-edit-btn", function () {
+      const $card = $(this).closest(".comment-card");
+      $card.find(".comment-text").removeClass("hidden");
+      $card.find(".comment-edit-textarea").addClass("hidden");
+      $card.find(".comment-edit-actions").addClass("hidden");
+      $card.find(".comment-actions").removeClass("hidden");
+    });
+
+    // Save edit
+    $body.on("click", ".save-edit-btn", (e) => {
+      const $btn = $(e.currentTarget);
+      const commentId = $btn.data("comment-id");
+      const $card = $btn.closest(".comment-card");
+      const newText = $card.find(".comment-edit-textarea").val().trim();
+      if (!newText) return;
+
+      startLoader("שומר...");
+      ApiClient.editComment({ commentId, commentText: newText })
+        .done(() => {
+          stopLoader();
+          this.showToast("ההערה עודכנה");
+          this.loadComments(this._currentCommentsProjectId);
+          this.loadData();
+        })
+        .fail((err) => {
+          stopLoader();
+          this.showToast(err.responseJSON?.message || "שגיאה בעדכון ההערה");
+        });
+    });
+
+    // Show delete confirm
+    $body.on("click", ".delete-comment-btn", function () {
+      const $card = $(this).closest(".comment-card");
+      $card.find(".comment-delete-confirm").removeClass("hidden");
+      $card.find(".comment-actions").addClass("hidden");
+      $card.find(".comment-text").addClass("hidden");
+    });
+
+    // Cancel delete
+    $body.on("click", ".cancel-delete-btn", function () {
+      const $card = $(this).closest(".comment-card");
+      $card.find(".comment-delete-confirm").addClass("hidden");
+      $card.find(".comment-actions").removeClass("hidden");
+      $card.find(".comment-text").removeClass("hidden");
+    });
+
+    // Confirm delete
+    $body.on("click", ".confirm-delete-btn", (e) => {
+      const commentId = $(e.currentTarget).data("comment-id");
+      startLoader("מוחק...");
+      ApiClient.deleteComment(commentId)
+        .done(() => {
+          stopLoader();
+          this.showToast("ההערה נמחקה");
+          this.loadComments(this._currentCommentsProjectId);
+          this.loadData();
+        })
+        .fail((err) => {
+          stopLoader();
+          this.showToast(err.responseJSON?.message || "שגיאה במחיקת ההערה");
+        });
+    });
+  },
+
+  /**
+   * Bind add-comment form events in the modal footer (called once from bindEvents)
+   */
+  bindCommentsModalFooterEvents() {
+    $("#toggleAddCommentBtn").on("click", () => {
+      const $form = $("#addCommentForm");
+      if ($form.hasClass("hidden")) {
+        $form.removeClass("hidden");
+        $("#newCommentText").focus();
+        $("#toggleAddCommentBtn").text("✕ סגור");
+      } else {
+        $form.addClass("hidden");
+        $("#newCommentText").val("");
+        $("#toggleAddCommentBtn").text("+ הוסף הערה");
+      }
+    });
+
+    $("#cancelCommentBtn").on("click", () => {
+      $("#addCommentForm").addClass("hidden");
+      $("#newCommentText").val("");
+      $("#toggleAddCommentBtn").text("+ הוסף הערה");
+    });
+
+    $("#submitCommentBtn").on("click", () => {
+      const text = $("#newCommentText").val().trim();
+      if (!text) return;
+      const projectId = this._currentCommentsProjectId;
+      const user = Auth.getCurrentUser();
+
+      startLoader("מוסיף הערה...");
+      ApiClient.addComment({
+        projectId,
+        commentText: text,
+        userId: user.userId,
+        userName: user.username,
+        userRole: user.role,
+      })
+        .done(() => {
+          stopLoader();
+          this.showToast("ההערה נוספה");
+          $("#addCommentForm").addClass("hidden");
+          $("#newCommentText").val("");
+          $("#toggleAddCommentBtn").text("+ הוסף הערה");
+          this.loadComments(projectId);
+          this.loadData();
+        })
+        .fail((err) => {
+          stopLoader();
+          this.showToast(err.responseJSON?.message || "שגיאה בהוספת ההערה");
+        });
+    });
   },
 
   /**
