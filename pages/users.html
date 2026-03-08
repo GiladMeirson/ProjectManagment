@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ניהול משתמשים</title>
+
+    <!-- DataTables CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css" />
+
+    <!-- SweetAlert2 CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+
+    <!-- App CSS -->
+    <link rel="stylesheet" href="../css/base.css" />
+    <link rel="stylesheet" href="../css/layout.css" />
+    <link rel="stylesheet" href="../css/buttons.css" />
+    <link rel="stylesheet" href="../css/forms.css" />
+    <link rel="stylesheet" href="../css/badges.css" />
+    <link rel="stylesheet" href="../css/modals.css" />
+    <link rel="stylesheet" href="../css/table.css" />
+    <link rel="stylesheet" href="../css/utilities.css" />
+  </head>
+  <body>
+    <div class="app-container">
+
+      <!-- Header -->
+      <header class="header">
+        <div class="header-right">
+          <div class="header-logo" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"
+                stroke="rgba(255,255,255,0.92)" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="9" cy="7" r="4"
+                stroke="rgba(255,255,255,0.92)" stroke-width="2" />
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"
+                stroke="rgba(255,255,255,0.65)" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+          <h1>ניהול משתמשים</h1>
+        </div>
+        <div class="header-left">
+          <button id="backBtn" class="btn btn-outline btn-sm">← חזרה לפרויקטים</button>
+          <div class="user-info">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <div>
+              <div class="user-name" id="userName">משתמש</div>
+              <div class="user-role" id="userRole">מנהל מערכת</div>
+            </div>
+          </div>
+          <button id="logoutBtn" class="btn btn-outline btn-sm">התנתק</button>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h2>רשימת משתמשים</h2>
+              <span class="card-count" id="userCount"></span>
+            </div>
+            <button id="addUserBtn" class="btn btn-primary">
+              + הוסף משתמש
+            </button>
+          </div>
+          <div class="card-body">
+            <table id="usersTable" class="display" style="width:100%"></table>
+          </div>
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        <div class="footer-inner">
+          <span dir="ltr" class="footer-copy">© 2026 אריאל מלכה מהנדסים בע"מ |
+            כל הזכויות שמורות</span>
+          <span class="footer-dev">פותח על ידי <a
+              href="https://giladmeirson.github.io/Gilad_Meirson_website/"
+              target="_blank" rel="noopener noreferrer">Gilad Meirson</a></span>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>הוספת משתמש חדש</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <form id="addUserForm">
+          <div class="modal-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newUserName">שם משתמש *</label>
+                <input type="text" id="newUserName" required />
+              </div>
+              <div class="form-group">
+                <label for="newUserEmail">אימייל *</label>
+                <input type="email" id="newUserEmail" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newUserPassword">סיסמה *</label>
+                <input type="password" id="newUserPassword" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newUserPermissions">הרשאות</label>
+                <select id="newUserPermissions" class="edit-select">
+                  <option value="2" selected>עובד (2)</option>
+                  <option value="1">מנהל (1)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="newUserRole">תפקיד</label>
+                <select id="newUserRole" class="edit-select">
+                  <option value="employee" selected>עובד</option>
+                  <option value="admin">מנהל</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-subtle-success">הוסף משתמש</button>
+            <button type="button" class="btn btn-subtle-danger modal-close">ביטול</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>עריכת משתמש</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <form id="editUserForm">
+          <div class="modal-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="editUserName">שם משתמש *</label>
+                <input type="text" id="editUserName" required />
+              </div>
+              <div class="form-group">
+                <label for="editUserEmail">אימייל *</label>
+                <input type="email" id="editUserEmail" required />
+              </div>
+            </div>
+            <div class="form-row single">
+              <div class="form-group">
+                <label for="editUserPassword">סיסמה חדשה <span class="label-hint">(השאר ריק לאי-שינוי)</span></label>
+                <input type="password" id="editUserPassword" placeholder="השאר ריק לאי-שינוי" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="editUserPermissions">הרשאות</label>
+                <select id="editUserPermissions" class="edit-select">
+                  <option value="2">עובד (2)</option>
+                  <option value="1">מנהל (1)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="editUserRole">תפקיד</label>
+                <select id="editUserRole" class="edit-select">
+                  <option value="employee">עובד</option>
+                  <option value="admin">מנהל</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-subtle-success">שמור שינויים</button>
+            <button type="button" class="btn btn-subtle-danger modal-close">ביטול</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="../js/utils/loader.js"></script>
+    <script src="../data/enums.js"></script>
+    <script src="../js/utils/clientLib.js"></script>
+    <script src="../js/utils/customSelect.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/users.js"></script>
+    <script src="../js/utils/onload.js"></script>
+  </body>
+</html>

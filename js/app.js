@@ -19,6 +19,12 @@ const ADMIN_ACTIONS = [
       App.showAddModal();
     },
   },
+  {
+    label: "ניהול משתמשים",
+    action: () => {
+      window.location.href = "users.html";
+    },
+  },
 ];
 
 // Application State
@@ -111,6 +117,28 @@ const App = {
     });
 
     return transformed;
+  },
+
+  /**
+   * Convert internal row data back to the full API payload for /projects/update
+   */
+  buildProjectPayload(row) {
+    return {
+      ProjectId:        row.ProjectId,
+      ProjectNumber:    row.ProjectNumber,
+      ProjectName:      row.ProjectName,
+      Priority:         row.Priority,
+      AssignedTo:       row.AssignedTo || null,
+      Status:           row.Status,
+      Chachi:           row.Chachi === YES_NO.YES,
+      ChachiIsExecuted: !!row.ChachiIsExecuted,
+      Bezeq:            row.Bezeq === YES_NO.YES,
+      BezeqIsExecuted:  !!row.BezeqIsExecuted,
+      Hot:              row.Hot === YES_NO.YES,
+      HotIsExecuted:    !!row.HotIsExecuted,
+      LastUpdated:      Date.now(),
+      IsDeleted:        false,
+    };
   },
 
   /**
@@ -212,21 +240,21 @@ const App = {
           title: 'חח"י',
           className: "editable-cell",
           render: (data, _type, row) =>
-            this.renderYesNoWithExecuted(data, row.ChachiIsExecuted),
+            this.renderYesNoWithExecuted(data, row.ChachiIsExecuted, row),
         },
         {
           data: "Bezeq",
           title: "בזק",
           className: "editable-cell",
           render: (data, _type, row) =>
-            this.renderYesNoWithExecuted(data, row.BezeqIsExecuted),
+            this.renderYesNoWithExecuted(data, row.BezeqIsExecuted, row),
         },
         {
           data: "Hot",
           title: "הוט",
           className: "editable-cell",
           render: (data, _type, row) =>
-            this.renderYesNoWithExecuted(data, row.HotIsExecuted),
+            this.renderYesNoWithExecuted(data, row.HotIsExecuted, row),
         },
         {
           data: null,
@@ -238,6 +266,11 @@ const App = {
             if (!Auth.isAdmin()) return "";
             return `
               <div class="action-buttons">
+                <button class="btn btn-subtle-primary btn-icon btn-sm edit-btn"
+                        data-row="${meta.row}"
+                        title="ערוך פרויקט">
+                  ✎
+                </button>
                 <button class="btn btn-subtle-danger btn-icon btn-sm delete-btn"
                         data-row="${meta.row}"
                         title="מחק פרויקט">
@@ -289,26 +322,52 @@ const App = {
       scrollX: true,
     });
 
-    // Handle cell click for YES/NO inline editing (Chachi/Bezeq/Hot columns only)
+    // Handle cell click for YES/NO inline editing (admin only — Chachi/Bezeq/Hot columns)
     $("#projectsTable tbody").on("click", "td.editable-cell", function (e) {
       // Don't open select when clicking on the checkbox itself
       if ($(e.target).hasClass("executed-check")) return;
       self.handleCellClick(this);
     });
 
-    // Handle IsExecuted checkbox change (admin only)
+    // Handle IsExecuted checkbox change
+    // Allowed for: admin (any project), regular user (own projects only)
     $("#projectsTable tbody").on("change", ".executed-check", function () {
-      if (!Auth.isAdmin()) return;
       const $cell = $(this).closest("td");
       const row = self.table.row($cell.parent());
       const rowIndex = row.index();
+      const rowData = self.data[rowIndex];
+
+      // Permission check
+      if (!Auth.isAdmin() && rowData.AssignedTo !== self.currentUser.username) {
+        this.checked = !this.checked; // revert
+        self.showLockedMessage();
+        return;
+      }
+
       const colIndex = $cell.index();
       const columns = self.table.settings().init().columns;
       const columnName = columns[colIndex].data; // "Chachi", "Bezeq", or "Hot"
       const executedField = columnName + "IsExecuted";
-      self.data[rowIndex][executedField] = this.checked;
+      rowData[executedField] = this.checked;
+
+      // Persist to server
+      ApiClient.updateProject(self.buildProjectPayload(rowData))
+        .fail(() => {
+          // Revert on failure
+          rowData[executedField] = !this.checked;
+          self.table.row(rowIndex).data(rowData).draw(false);
+          self.showToast("שגיאה בשמירת הנתונים");
+        });
+
       // Redraw cell without full table redraw
-      self.table.row(rowIndex).data(self.data[rowIndex]).draw(false);
+      self.table.row(rowIndex).data(rowData).draw(false);
+    });
+
+    // Handle edit button click (admin only)
+    $("#projectsTable tbody").on("click", ".edit-btn", function (e) {
+      e.stopPropagation();
+      const rowIndex = $(this).data("row");
+      self.showEditModal(rowIndex);
     });
 
     // Handle delete button click
@@ -327,9 +386,15 @@ const App = {
   },
 
   /**
-   * Handle cell click for inline editing (Chachi/Bezeq/Hot only)
+   * Handle cell click for inline editing (admin only — Chachi/Bezeq/Hot)
    */
   handleCellClick(cell) {
+    // YES/NO inline editing is admin-only
+    if (!Auth.isAdmin()) {
+      this.showLockedMessage();
+      return;
+    }
+
     const $cell = $(cell);
     const columnIndex = $cell.index();
     const row = this.table.row($cell.parent());
@@ -343,12 +408,6 @@ const App = {
 
     // Skip if already editing
     if ($cell.find("input, select").length > 0) return;
-
-    // Permission check for non-admins: only own projects
-    if (!Auth.isAdmin() && rowData.AssignedTo !== this.currentUser.username) {
-      this.showLockedMessage();
-      return;
-    }
 
     const currentValue = rowData[columnName] || "";
     this.createEditControl($cell, rowIndex, columnName, currentValue);
@@ -421,15 +480,25 @@ const App = {
   },
 
   /**
-   * Save cell value (in-memory only, no server call)
+   * Save cell value and persist to server
    */
   saveCell($cell, rowIndex, columnName, newValue) {
+    const oldValue = this.data[rowIndex][columnName];
     this.data[rowIndex][columnName] = newValue;
     this.table.row(rowIndex).data(this.data[rowIndex]).draw(false);
 
-    // Visual feedback
-    $cell.addClass("cell-saved");
-    setTimeout(() => $cell.removeClass("cell-saved"), 800);
+    // Persist to server
+    ApiClient.updateProject(this.buildProjectPayload(this.data[rowIndex]))
+      .done(() => {
+        $cell.addClass("cell-saved");
+        setTimeout(() => $cell.removeClass("cell-saved"), 800);
+      })
+      .fail(() => {
+        // Revert on failure
+        this.data[rowIndex][columnName] = oldValue;
+        this.table.row(rowIndex).data(this.data[rowIndex]).draw(false);
+        this.showToast("שגיאה בשמירת הנתונים");
+      });
   },
 
   /**
@@ -475,14 +544,16 @@ const App = {
   },
 
   /**
-   * Render Yes/No badge with optional IsExecuted checkbox (shown only when value is כן)
+   * Render Yes/No badge with optional IsExecuted checkbox
+   * IsExecuted checkbox: enabled for admin (any project) and regular user on own project
    */
-  renderYesNoWithExecuted(value, isExecuted) {
+  renderYesNoWithExecuted(value, isExecuted, row) {
     const badge = this.renderYesNoBadge(value);
     if (value !== YES_NO.YES) return badge;
 
     const checkedAttr = isExecuted ? "checked" : "";
-    const disabledAttr = Auth.isAdmin() ? "" : "disabled";
+    const isOwnProject = row && row.AssignedTo === this.currentUser.username;
+    const disabledAttr = (Auth.isAdmin() || isOwnProject) ? "" : "disabled";
     return `<div class="yes-no-cell">
       ${badge}
       <label class="executed-label">
@@ -536,6 +607,12 @@ const App = {
       this.addProject();
     });
 
+    // Edit project form submit
+    $("#editProjectForm").on("submit", (e) => {
+      e.preventDefault();
+      this.saveEditProject();
+    });
+
     // Prevent modal content click from closing
     $(".modal").on("click", (e) => {
       e.stopPropagation();
@@ -563,6 +640,130 @@ const App = {
   },
 
   /**
+   * Show edit project modal (admin only)
+   */
+  async showEditModal(rowIndex) {
+    const row = this.data[rowIndex];
+    $("#editProjectModal").data("row-index", rowIndex);
+
+    // Populate dropdowns first
+    await this.populateEditModalDropdowns();
+
+    // Fill fields
+    $("#editProjectNumber").val(row.ProjectNumber);
+    $("#editProjectName").val(row.ProjectName);
+    $("#editAssignedTo").val(row.AssignedTo || "");
+    $("#editStatus").val(row.Status || "");
+    $("#editPriority").val(row.Priority || "");
+    $("#editChachi").val(row.Chachi || YES_NO.NO);
+    $("#editChachiIsExecuted").prop("checked", !!row.ChachiIsExecuted);
+    $("#editBezeq").val(row.Bezeq || YES_NO.NO);
+    $("#editBezeqIsExecuted").prop("checked", !!row.BezeqIsExecuted);
+    $("#editHot").val(row.Hot || YES_NO.NO);
+    $("#editHotIsExecuted").prop("checked", !!row.HotIsExecuted);
+
+    // Refresh custom-select UI after setting values
+    $("#editProjectModal select[data-cs-enhanced]").each(function () {
+      if (this._csRefresh) this._csRefresh();
+    });
+    enhanceAllSelects(document.getElementById("editProjectModal"));
+
+    $("#editProjectModal").addClass("show");
+  },
+
+  /**
+   * Populate edit modal dropdowns
+   */
+  async populateEditModalDropdowns() {
+    // AssignedTo dropdown
+    const $assigned = $("#editAssignedTo");
+    $assigned.empty().append('<option value="">-- בחר --</option>');
+    try {
+      const usernames = await ApiClient.getUserNames();
+      usernames.forEach((name) => {
+        $assigned.append(`<option value="${name}">${name}</option>`);
+      });
+    } catch (_) { /* ignore — dropdown stays with blank option */ }
+
+    // Status dropdown
+    const $status = $("#editStatus");
+    $status.empty();
+    Object.values(STATUS).forEach((val) => {
+      $status.append(`<option value="${val}">${val}</option>`);
+    });
+
+    // Priority dropdown
+    const $priority = $("#editPriority");
+    $priority.empty();
+    Object.values(PRIORITY).forEach((val) => {
+      $priority.append(`<option value="${val}">${val}</option>`);
+    });
+
+    // Chachi/Bezeq/Hot dropdowns
+    ["#editChachi", "#editBezeq", "#editHot"].forEach((selector) => {
+      const $select = $(selector);
+      $select.empty();
+      Object.values(YES_NO).forEach((val) => {
+        $select.append(`<option value="${val}">${val}</option>`);
+      });
+    });
+  },
+
+  /**
+   * Save edited project via API
+   */
+  async saveEditProject() {
+    const rowIndex = $("#editProjectModal").data("row-index");
+    const row = this.data[rowIndex];
+
+    const updated = {
+      ...row,
+      ProjectNumber:    $("#editProjectNumber").val().trim(),
+      ProjectName:      $("#editProjectName").val().trim(),
+      AssignedTo:       $("#editAssignedTo").val() || null,
+      Status:           $("#editStatus").val(),
+      Priority:         $("#editPriority").val(),
+      Chachi:           $("#editChachi").val(),
+      ChachiIsExecuted: $("#editChachiIsExecuted").is(":checked"),
+      Bezeq:            $("#editBezeq").val(),
+      BezeqIsExecuted:  $("#editBezeqIsExecuted").is(":checked"),
+      Hot:              $("#editHot").val(),
+      HotIsExecuted:    $("#editHotIsExecuted").is(":checked"),
+    };
+
+    if (!updated.ProjectNumber || !updated.ProjectName) {
+      Swal.fire({
+        icon: "error",
+        title: "שדות חסרים",
+        text: "נא למלא את שדות מספר פרויקט ושם הפרויקט",
+        confirmButtonText: "אישור",
+        customClass: { confirmButton: "swal-btn" },
+      });
+      return;
+    }
+
+    startLoader("שומר שינויים...");
+    try {
+      await ApiClient.updateProject(this.buildProjectPayload(updated));
+      // Update local data
+      this.data[rowIndex] = updated;
+      this.hideModal();
+      await this.loadData();
+      this.showToast("הפרויקט עודכן בהצלחה");
+    } catch (err) {
+      const msg = err.responseJSON?.message || "שגיאה בעדכון הפרויקט";
+      Swal.fire({
+        icon: "error",
+        title: "שגיאה",
+        text: msg,
+        confirmButtonText: "אישור",
+      });
+    } finally {
+      stopLoader();
+    }
+  },
+
+  /**
    * Hide modal
    */
   hideModal() {
@@ -570,17 +771,19 @@ const App = {
   },
 
   /**
-   * Populate modal dropdowns with enum values
+   * Populate modal dropdowns with enum values (for add project modal)
    */
   async populateModalDropdowns() {
     // Assigned to dropdown
     const $assigned = $("#newAssignedTo");
     $assigned.empty();
     $assigned.append('<option value="">-- בחר --</option>');
-    const usernames = await Auth.getAllUsernames();
-    usernames.forEach((name) => {
-      $assigned.append(`<option value="${name}">${name}</option>`);
-    });
+    try {
+      const usernames = await ApiClient.getUserNames();
+      usernames.forEach((name) => {
+        $assigned.append(`<option value="${name}">${name}</option>`);
+      });
+    } catch (_) { /* ignore */ }
 
     // Yes/No dropdowns
     ["#newChachi", "#newBezeq", "#newHot"].forEach((selector) => {
@@ -667,8 +870,17 @@ const App = {
 
     startLoader("מוסיף עובד...");
     ApiClient.signup(userData)
-      .done(() => {
+      .done((res) => {
         stopLoader();
+        if (res.user && res.user.Message === "EMAIL_ALREADY_EXISTS") {
+          Swal.fire({
+            icon: "warning",
+            title: "אימייל קיים",
+            text: "כתובת האימייל כבר רשומה במערכת",
+            confirmButtonText: "אישור",
+          });
+          return;
+        }
         $("#addEmployeeModal").removeClass("show");
         $("#addEmployeeForm")[0].reset();
         this.showToast("העובד נוסף בהצלחה");
@@ -691,7 +903,6 @@ const App = {
   confirmDelete(rowIndex) {
     const project = this.data[rowIndex];
     $("#deleteProjectName").text(project.ProjectName);
-    $("#confirmDeleteBtn").data("row", rowIndex);
     $("#deleteConfirmModal").addClass("show");
 
     $("#confirmDeleteBtn")
@@ -708,16 +919,31 @@ const App = {
   },
 
   /**
-   * Delete project (in-memory only, no server endpoint yet)
+   * Soft-delete project via API (IsDeleted: true)
    */
-  deleteProject(rowIndex) {
-    this.data.splice(rowIndex, 1);
+  async deleteProject(rowIndex) {
+    const row = this.data[rowIndex];
+    const payload = { ...this.buildProjectPayload(row), IsDeleted: true };
 
-    this.table.clear().rows.add(this.data).draw();
-
-    this.hideModal();
-    this.updateProjectCount();
-    this.showToast("הפרויקט נמחק בהצלחה");
+    startLoader("מוחק פרויקט...");
+    try {
+      await ApiClient.updateProject(payload);
+      stopLoader();
+      this.data.splice(rowIndex, 1);
+      this.table.clear().rows.add(this.data).draw();
+      this.hideModal();
+      this.updateProjectCount();
+      this.showToast("הפרויקט נמחק בהצלחה");
+    } catch (err) {
+      stopLoader();
+      const msg = err.responseJSON?.message || "שגיאה במחיקת הפרויקט";
+      Swal.fire({
+        icon: "error",
+        title: "שגיאה",
+        text: msg,
+        confirmButtonText: "אישור",
+      });
+    }
   },
 
   // ==========================================
@@ -765,7 +991,9 @@ const App = {
     startLoader("טוען הערות...");
     ApiClient.getCommentsByProjectId(projectId)
       .done((comments) => {
-        this.renderComments(comments);
+        // Filter out soft-deleted comments
+        const active = comments.filter((c) => !c.IsDeleted);
+        this.renderComments(active);
       })
       .fail(() => {
         this.showToast("שגיאה בטעינת הערות");
@@ -801,7 +1029,12 @@ const App = {
           </div>`
         : "";
 
-      return `<div class="comment-card" data-comment-id="${c.CommentId}" data-user-id="${c.UserId}">
+      const safeText = this.escapeHtml(c.CommentText);
+
+      return `<div class="comment-card"
+          data-comment-id="${c.CommentId}"
+          data-user-id="${c.UserId}"
+          data-comment-text="${safeText}">
         <div class="comment-header">
           <div class="comment-meta">
             <span class="comment-author-name">${authorName}</span>
@@ -810,8 +1043,8 @@ const App = {
           ${actionButtons}
         </div>
         <div class="comment-body">
-          <p class="comment-text">${this.escapeHtml(c.CommentText)}</p>
-          <textarea class="comment-edit-textarea hidden">${this.escapeHtml(c.CommentText)}</textarea>
+          <p class="comment-text">${safeText}</p>
+          <textarea class="comment-edit-textarea hidden">${safeText}</textarea>
           <div class="comment-edit-actions hidden">
             <button class="save-edit-btn btn btn-subtle-success" data-comment-id="${c.CommentId}">שמור</button>
             <button class="cancel-edit-btn btn btn-subtle-danger">ביטול</button>
@@ -865,7 +1098,13 @@ const App = {
       if (!newText) return;
 
       startLoader("שומר...");
-      ApiClient.editComment({ commentId, commentText: newText })
+      ApiClient.updateComment({
+        CommentId:   commentId,
+        ProjectId:   this._currentCommentsProjectId,
+        CommentText: newText,
+        UserId:      this.currentUser.userId,
+        IsDeleted:   false,
+      })
         .done(() => {
           stopLoader();
           this.showToast("ההערה עודכנה");
@@ -894,11 +1133,22 @@ const App = {
       $card.find(".comment-text").removeClass("hidden");
     });
 
-    // Confirm delete
+    // Confirm delete — soft-delete via updateComment with IsDeleted: true
     $body.on("click", ".confirm-delete-btn", (e) => {
-      const commentId = $(e.currentTarget).data("comment-id");
+      const $btn = $(e.currentTarget);
+      const commentId = $btn.data("comment-id");
+      const $card = $btn.closest(".comment-card");
+      const commentText = $card.data("comment-text") || "";
+      const userId = $card.data("user-id");
+
       startLoader("מוחק...");
-      ApiClient.deleteComment(commentId)
+      ApiClient.updateComment({
+        CommentId:   commentId,
+        ProjectId:   this._currentCommentsProjectId,
+        CommentText: commentText,
+        UserId:      userId,
+        IsDeleted:   true,
+      })
         .done(() => {
           stopLoader();
           this.showToast("ההערה נמחקה");
@@ -943,11 +1193,9 @@ const App = {
 
       startLoader("מוסיף הערה...");
       ApiClient.addComment({
-        projectId,
-        commentText: text,
-        userId: user.userId,
-        userName: user.username,
-        userRole: user.role,
+        ProjectId:   projectId,
+        CommentText: text,
+        UserId:      user.userId,
       })
         .done(() => {
           stopLoader();

@@ -6,6 +6,7 @@
 
 const ApiClient = {
   BASE_URL: location.host === "" || location.host.includes("localhost") ? "http://localhost:3000" : "",
+
   /**
    * Sign in a user with email and password
    * @param {string} email
@@ -35,7 +36,32 @@ const ApiClient = {
     });
   },
 
-  getAllProjects(){
+  /**
+   * Update an existing user's details (admin only)
+   * @param {{ userId: number, email: string, password: string, userName: string, permissions: number, Role: string }} payload
+   * @returns {jQuery.Deferred}
+   */
+  updateUser(payload) {
+    return $.ajax({
+      url: `${this.BASE_URL}/users/update`,
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(payload),
+    });
+  },
+
+  /**
+   * Get all users with full details (admin only — response includes Password field).
+   * @returns {jQuery.Deferred}
+   */
+  getAllUsers() {
+    return $.ajax({
+      url: `${this.BASE_URL}/users/all`,
+      method: "GET",
+    });
+  },
+
+  getAllProjects() {
     return $.ajax({
       url: `${this.BASE_URL}/projects`,
       method: "GET",
@@ -56,6 +82,20 @@ const ApiClient = {
     });
   },
 
+  /**
+   * Update all fields of an existing project (also used for soft-delete via IsDeleted: true)
+   * @param {object} payload — must include all project fields + LastUpdated + IsDeleted
+   * @returns {jQuery.Deferred}
+   */
+  updateProject(payload) {
+    return $.ajax({
+      url: `${this.BASE_URL}/projects/update`,
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(payload),
+    });
+  },
+
   getCommentsByProjectId(projectId) {
     return $.ajax({
       url: `${this.BASE_URL}/projects/getCommentsByProjectId`,
@@ -65,6 +105,11 @@ const ApiClient = {
     });
   },
 
+  /**
+   * Add a new comment to a project
+   * @param {{ ProjectId: number, CommentText: string, UserId: number }} payload
+   * @returns {jQuery.Deferred}
+   */
   addComment(payload) {
     return $.ajax({
       url: `${this.BASE_URL}/projects/addComment`,
@@ -74,21 +119,28 @@ const ApiClient = {
     });
   },
 
-  editComment(payload) {
+  /**
+   * Update or soft-delete an existing comment
+   * @param {{ CommentId: number, ProjectId: number, CommentText: string, UserId: number, IsDeleted: boolean }} payload
+   * @returns {jQuery.Deferred}
+   */
+  updateComment(payload) {
     return $.ajax({
-      url: `${this.BASE_URL}/projects/editComment`,
-      method: "PUT",
+      url: `${this.BASE_URL}/projects/updateComment`,
+      method: "POST",
       contentType: "application/json",
       data: JSON.stringify(payload),
     });
   },
 
-  deleteComment(commentId) {
+  /**
+   * Get all user names (flat array of strings)
+   * @returns {Promise<string[]>}
+   */
+  getUserNames() {
     return $.ajax({
-      url: `${this.BASE_URL}/projects/deleteComment`,
-      method: "DELETE",
-      contentType: "application/json",
-      data: JSON.stringify({ commentId }),
+      url: `${this.BASE_URL}/users/names`,
+      method: "GET",
     });
   },
 };

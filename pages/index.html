@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="he" dir="rtl">
   <head>
     <meta charset="UTF-8" />
@@ -150,10 +150,90 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-subtle-success">שמור
-              פרויקט</button>
-            <button type="button"
-              class="btn btn-subtle-danger">ביטול</button>
+            <button type="submit" class="btn btn-subtle-success">שמור פרויקט</button>
+            <button type="button" class="btn btn-subtle-danger modal-close">ביטול</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Edit Project Modal -->
+    <div id="editProjectModal" class="modal-overlay">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h3>עריכת פרויקט</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <form id="editProjectForm">
+          <div class="modal-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="editProjectNumber">מספר פרויקט *</label>
+                <input type="text" id="editProjectNumber" required />
+              </div>
+              <div class="form-group">
+                <label for="editProjectName">שם הפרויקט *</label>
+                <input type="text" id="editProjectName" required />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="editAssignedTo">מוקצה ל</label>
+                <select id="editAssignedTo" class="edit-select"></select>
+              </div>
+              <div class="form-group">
+                <label for="editStatus">סטטוס</label>
+                <select id="editStatus" class="edit-select"></select>
+              </div>
+            </div>
+
+            <div class="form-row single">
+              <div class="form-group">
+                <label for="editPriority">עדיפות</label>
+                <select id="editPriority" class="edit-select"></select>
+              </div>
+            </div>
+
+            <div class="form-row form-row-3">
+              <div class="form-group">
+                <label for="editChachi">חח"י</label>
+                <select id="editChachi" class="edit-select"></select>
+              </div>
+              <div class="form-group">
+                <label for="editBezeq">בזק</label>
+                <select id="editBezeq" class="edit-select"></select>
+              </div>
+              <div class="form-group">
+                <label for="editHot">הוט</label>
+                <select id="editHot" class="edit-select"></select>
+              </div>
+            </div>
+
+            <div class="form-row form-row-3">
+              <div class="form-group form-group-checkbox">
+                <label>
+                  <input type="checkbox" id="editChachiIsExecuted" />
+                  <span>חח"י — האם בוצע</span>
+                </label>
+              </div>
+              <div class="form-group form-group-checkbox">
+                <label>
+                  <input type="checkbox" id="editBezeqIsExecuted" />
+                  <span>בזק — האם בוצע</span>
+                </label>
+              </div>
+              <div class="form-group form-group-checkbox">
+                <label>
+                  <input type="checkbox" id="editHotIsExecuted" />
+                  <span>הוט — האם בוצע</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-subtle-success">שמור שינויים</button>
+            <button type="button" class="btn btn-subtle-danger modal-close">ביטול</button>
           </div>
         </form>
       </div>
@@ -215,10 +295,8 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-subtle-success">הוסף
-              עובד</button>
-            <button type="button"
-              class="btn btn-subtle-danger">ביטול</button>
+            <button type="submit" class="btn btn-subtle-success">הוסף עובד</button>
+            <button type="button" class="btn btn-subtle-danger modal-close">ביטול</button>
           </div>
         </form>
       </div>
@@ -239,10 +317,8 @@
           <p class="warning-text">פעולה זו אינה ניתנת לביטול</p>
         </div>
         <div class="modal-footer modal-footer-center">
-          <button id="confirmDeleteBtn"
-            class="btn btn-subtle-danger">מחק</button>
-          <button id="cancelDeleteBtn"
-            class="btn btn-subtle-danger">ביטול</button>
+          <button id="confirmDeleteBtn" class="btn btn-subtle-danger">מחק</button>
+          <button id="cancelDeleteBtn" class="btn btn-outline">ביטול</button>
         </div>
       </div>
     </div>
@@ -297,8 +373,6 @@
     <!-- Application Data & Scripts -->
     <script src="../js/utils/loader.js"></script>
     <script src="../data/enums.js"></script>
-    <script src="../data/projects.js"></script>
-    <script src="../data/users.js"></script>
     <script src="../js/utils/clientLib.js"></script>
     <script src="../js/utils/customSelect.js"></script>
     <script src="../js/auth.js"></script>
