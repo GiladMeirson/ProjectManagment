@@ -92,11 +92,14 @@
 }
 
 /* ---- Inline cell-edit indicators ---- */
-.editable-cell {
+.editable-cell,
+.status-cell {
   position: relative;
+  cursor: pointer;
 }
 
-.editable-cell:hover::after {
+.editable-cell:hover::after,
+.status-cell:hover::after {
   content: "✏️";
   position: absolute;
   left: 4px;
@@ -104,6 +107,7 @@
   transform: translateY(-50%);
   font-size: 0.7rem;
   opacity: 0.45;
+  pointer-events: none;
 }
 
 .cell-locked {

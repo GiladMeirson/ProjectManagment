@@ -173,6 +173,10 @@ const App = {
     if (adminMenuBtn) {
       adminMenuBtn.classList.toggle("hidden", !Auth.isAdmin());
     }
+    const quickAddBtn = document.getElementById("quickAddProjectBtn");
+    if (quickAddBtn) {
+      quickAddBtn.classList.toggle("hidden", !Auth.isAdmin());
+    }
   },
 
   /**
@@ -219,6 +223,7 @@ const App = {
         {
           data: "Status",
           title: "סטטוס",
+          className: "status-cell",
           render: (data) => this.renderStatusBadge(data),
         },
         {
@@ -329,6 +334,11 @@ const App = {
       self.handleCellClick(this);
     });
 
+    // Handle cell click for Status inline editing (admin or own-project employee)
+    $("#projectsTable tbody").on("click", "td.status-cell", function () {
+      self.handleStatusCellClick(this);
+    });
+
     // Handle IsExecuted checkbox change
     // Allowed for: admin (any project), regular user (own projects only)
     $("#projectsTable tbody").on("change", ".executed-check", function () {
@@ -352,6 +362,10 @@ const App = {
 
       // Persist to server
       ApiClient.updateProject(self.buildProjectPayload(rowData))
+        .done(() => {
+          $cell.addClass("cell-saved");
+          setTimeout(() => $cell.removeClass("cell-saved"), 800);
+        })
         .fail(() => {
           // Revert on failure
           rowData[executedField] = !this.checked;
@@ -410,7 +424,29 @@ const App = {
     if ($cell.find("input, select").length > 0) return;
 
     const currentValue = rowData[columnName] || "";
-    this.createEditControl($cell, rowIndex, columnName, currentValue);
+    this.createEditControl($cell, rowIndex, columnName, currentValue, Object.values(YES_NO));
+  },
+
+  /**
+   * Handle Status cell click — admin or employee on own project
+   */
+  handleStatusCellClick(cell) {
+    const $cell = $(cell);
+    const row = this.table.row($cell.parent());
+    const rowIndex = row.index();
+    const rowData = this.data[rowIndex];
+
+    const isOwnProject = rowData.AssignedTo === this.currentUser.username;
+    if (!Auth.isAdmin() && !isOwnProject) {
+      this.showLockedMessage();
+      return;
+    }
+
+    // Skip if already editing
+    if ($cell.find("input, select").length > 0) return;
+
+    const currentValue = rowData.Status || "";
+    this.createEditControl($cell, rowIndex, "Status", currentValue, Object.values(STATUS));
   },
 
   /**
@@ -427,10 +463,10 @@ const App = {
   },
 
   /**
-   * Create YES/NO select edit control
+   * Create inline select edit control
    */
-  createEditControl($cell, rowIndex, columnName, currentValue) {
-    const inputHtml = this.createSelect(currentValue, Object.values(YES_NO));
+  createEditControl($cell, rowIndex, columnName, currentValue, options = Object.values(YES_NO)) {
+    const inputHtml = this.createSelect(currentValue, options);
     $cell.html(inputHtml);
     const $input = $cell.find("select");
 
@@ -586,6 +622,11 @@ const App = {
     // Admin menu button
     $("#adminMenuBtn").on("click", () => {
       $("#adminMenuModal").addClass("show");
+    });
+
+    // Quick add project button (shortcut — admin only)
+    $("#quickAddProjectBtn").on("click", () => {
+      App.showAddModal();
     });
 
     // Add employee form submit
