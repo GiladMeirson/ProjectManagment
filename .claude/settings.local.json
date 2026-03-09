@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -n '1238,1242p' \"c:/Users/gilad/OneDrive/שולחן העבודה/MyStaff/MyProjects/ProjectManagment/js/app.js\")",
+      "Bash(sed -n '1355,1359p' \"c:/Users/gilad/OneDrive/שולחן העבודה/MyStaff/MyProjects/ProjectManagment/js/app.js\")",
+      "Bash(sed -n '1399,1403p' \"c:/Users/gilad/OneDrive/שולחן העבודה/MyStaff/MyProjects/ProjectManagment/js/app.js\")",
+      "Bash(sed -n '1450,1454p' \"c:/Users/gilad/OneDrive/שולחן העבודה/MyStaff/MyProjects/ProjectManagment/js/app.js\")"
+    ]
+  }
+}

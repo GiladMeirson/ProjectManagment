@@ -18,7 +18,8 @@
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.form-group textarea {
   width: 100%;
   padding: 10px 14px;
   border: 1.5px solid var(--gray-200);
@@ -29,13 +30,41 @@
   background: white;
   direction: rtl;
   transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
 }
 
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus,
+.form-group textarea:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-group input.input-error,
+.form-group select.input-error,
+.form-group textarea.input-error {
+  border-color: var(--danger-color);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.form-group .field-error-msg {
+  display: none;
+  margin-top: 5px;
+  font-size: 0.8rem;
+  color: var(--danger-color);
+  font-weight: 600;
+}
+
+.form-group textarea.input-error ~ .field-error-msg,
+.form-group input.input-error ~ .field-error-msg {
+  display: block;
 }
 
 /* ---- Grid rows ---- */

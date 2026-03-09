@@ -33,6 +33,8 @@ const App = {
   data: [],
   currentUser: null,
   _currentCommentsProjectId: null,
+  _cachedUserNames: [],
+  showingDeleted: false,
 
   /**
    * Initialize the application
@@ -58,7 +60,11 @@ const App = {
   async loadData() {
     startLoader("טוען פרויקטים...");
     try {
-      const projects = await ApiClient.getAllProjects();
+      const [projects, usernames] = await Promise.all([
+        ApiClient.getAllProjects(this.showingDeleted ? { isDeleted: true } : {}),
+        ApiClient.getUserNames().catch(() => []),
+      ]);
+      this._cachedUserNames = usernames;
       this.data = this.transformProjects(projects);
 
       // Destroy existing table before re-initialising (e.g. after create)
@@ -87,9 +93,9 @@ const App = {
    */
   transformProjects(rawProjects) {
     const transformed = rawProjects
-      .filter((p) => !p.IsDeleted)
       .map((p) => ({
         ProjectId: p.ProjectId,
+        IsDeleted: !!p.IsDeleted,
         ProjectNumber: p.ProjectNumber,
         ProjectName: p.ProjectName,
         Priority: p.Priority || PRIORITY.NEW,
@@ -162,7 +168,12 @@ const App = {
    */
   updateProjectCount() {
     const el = document.getElementById("projectCount");
-    if (el) el.textContent = this.data.length;
+    if (!el) return;
+    if (this.table && $("#myProjectsFilter").is(":checked")) {
+      el.textContent = this.table.rows({ filter: "applied" }).count();
+    } else {
+      el.textContent = this.data.length;
+    }
   },
 
   /**
@@ -177,6 +188,11 @@ const App = {
     if (quickAddBtn) {
       quickAddBtn.classList.toggle("hidden", !Auth.isAdmin());
     }
+    if (Auth.isAdmin()) {
+      document.body.classList.add("is-admin");
+    }
+    document.getElementById("deletedProjectsFilterWrap")
+      ?.classList.toggle("hidden", !Auth.isAdmin());
   },
 
   /**
@@ -204,19 +220,23 @@ const App = {
         {
           data: "ProjectNumber",
           title: "מספר פרויקט",
+          className: "inline-text-cell",
         },
         {
           data: "ProjectName",
           title: "שם הפרויקט",
+          className: "inline-text-cell",
         },
         {
           data: "Priority",
           title: "עדיפות",
+          className: "inline-select-cell priority-cell",
           render: (data) => this.renderPriorityBadge(data),
         },
         {
           data: "AssignedTo",
           title: "מוקצה ל",
+          className: "inline-select-cell assignedto-cell",
           render: (data) =>
             data ? `<span class="assigned-user">${this.escapeHtml(data)}</span>` : '<span class="badge badge-empty">--</span>',
         },
@@ -230,7 +250,10 @@ const App = {
           data: "LastCommentText",
           title: "הערות",
           render: (data, _type, row) => {
-            if (!data) return '<span class="badge badge-empty">--</span>';
+            if (!data) return `<span class="comment-cell badge badge-empty"
+              data-project-id="${row.ProjectId}"
+              data-project-name="${this.escapeHtml(row.ProjectName)}"
+              >--</span>`;
             const isAdmin = row.LastCommentUserRole === "admin";
             const displayName = isAdmin ? "מנהל מערכת" : this.escapeHtml(row.LastCommentUserName || "");
             const truncated = data.length > 45 ? data.substring(0, 45) + "..." : data;
@@ -269,6 +292,17 @@ const App = {
           className: "text-center",
           render: (_data, _type, _row, meta) => {
             if (!Auth.isAdmin()) return "";
+            if (self.showingDeleted) {
+              return `
+                <div class="action-buttons">
+                  <button class="btn btn-subtle-success btn-icon btn-sm restore-btn"
+                          data-row="${meta.row}"
+                          title="שחזר פרויקט">
+                    ↩
+                  </button>
+                </div>
+              `;
+            }
             return `
               <div class="action-buttons">
                 <button class="btn btn-subtle-primary btn-icon btn-sm edit-btn"
@@ -327,8 +361,16 @@ const App = {
       scrollX: true,
     });
 
+    // Register custom search for "my projects" filter
+    $.fn.dataTable.ext.search.push((settings, _data, _dataIndex, rowData) => {
+      if (settings.nTable.id !== "projectsTable") return true;
+      if (!$("#myProjectsFilter").is(":checked")) return true;
+      return rowData.AssignedTo === self.currentUser.username;
+    });
+
     // Handle cell click for YES/NO inline editing (admin only — Chachi/Bezeq/Hot columns)
     $("#projectsTable tbody").on("click", "td.editable-cell", function (e) {
+      if (self.showingDeleted) return;
       // Don't open select when clicking on the checkbox itself
       if ($(e.target).hasClass("executed-check")) return;
       self.handleCellClick(this);
@@ -336,7 +378,50 @@ const App = {
 
     // Handle cell click for Status inline editing (admin or own-project employee)
     $("#projectsTable tbody").on("click", "td.status-cell", function () {
+      if (self.showingDeleted) return;
       self.handleStatusCellClick(this);
+    });
+
+    // Admin inline text editing (ProjectNumber, ProjectName)
+    $("#projectsTable tbody").on("click", "td.inline-text-cell", function () {
+      if (self.showingDeleted) return;
+      self.handleTextCellClick(this);
+    });
+
+    // Admin inline select for Priority
+    $("#projectsTable tbody").on("click", "td.priority-cell", function () {
+      if (self.showingDeleted) return;
+      self.handleInlineSelectCellClick(this, "Priority", Object.values(PRIORITY));
+    });
+
+    // Admin inline select for AssignedTo
+    $("#projectsTable tbody").on("click", "td.assignedto-cell", function () {
+      if (self.showingDeleted) return;
+      self.handleInlineSelectCellClick(this, "AssignedTo", [""].concat(self._cachedUserNames));
+    });
+
+    // Handle restore button click (admin, deleted-projects mode only)
+    $("#projectsTable tbody").on("click", ".restore-btn", async function (e) {
+      e.stopPropagation();
+      const rowIndex = parseInt($(this).data("row"));
+      const row = self.data[rowIndex];
+      const result = await Swal.fire({
+        title: "שחזור פרויקט",
+        text: `האם לשחזר את הפרויקט "${row.ProjectName}"?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "שחזר",
+        cancelButtonText: "ביטול",
+      });
+      if (!result.isConfirmed) return;
+      try {
+        const payload = { ...self.buildProjectPayload(row), IsDeleted: false };
+        await ApiClient.updateProject(payload);
+        self.showToast("הפרויקט שוחזר בהצלחה");
+        await self.loadData();
+      } catch {
+        Swal.fire({ icon: "error", title: "שגיאה", text: "לא ניתן לשחזר את הפרויקט", confirmButtonText: "אישור" });
+      }
     });
 
     // Handle IsExecuted checkbox change
@@ -365,12 +450,13 @@ const App = {
         .done(() => {
           $cell.addClass("cell-saved");
           setTimeout(() => $cell.removeClass("cell-saved"), 800);
+          self.showToast("הנתונים נשמרו בהצלחה", "success", 1500);
         })
         .fail(() => {
           // Revert on failure
           rowData[executedField] = !this.checked;
           self.table.row(rowIndex).data(rowData).draw(false);
-          self.showToast("שגיאה בשמירת הנתונים");
+          self.showToast("שגיאה בשמירת הנתונים", "error");
         });
 
       // Redraw cell without full table redraw
@@ -420,8 +506,8 @@ const App = {
     // Only allow editing Chachi / Bezeq / Hot
     if (!["Chachi", "Bezeq", "Hot"].includes(columnName)) return;
 
-    // Skip if already editing
-    if ($cell.find("input, select").length > 0) return;
+    // Skip if already editing (check for the custom-select trigger, not checkbox inputs)
+    if ($cell.find(".edit-select, .cs-trigger").length > 0) return;
 
     const currentValue = rowData[columnName] || "";
     this.createEditControl($cell, rowIndex, columnName, currentValue, Object.values(YES_NO));
@@ -443,10 +529,84 @@ const App = {
     }
 
     // Skip if already editing
-    if ($cell.find("input, select").length > 0) return;
+    if ($cell.find(".edit-select, .cs-trigger").length > 0) return;
 
     const currentValue = rowData.Status || "";
     this.createEditControl($cell, rowIndex, "Status", currentValue, Object.values(STATUS));
+  },
+
+  /**
+   * Handle inline text edit for ProjectNumber / ProjectName (admin only)
+   */
+  handleTextCellClick(cell) {
+    if (!Auth.isAdmin()) return;
+    const $cell = $(cell);
+    if ($cell.find(".edit-text-input").length > 0) return;
+
+    const row = this.table.row($cell.parent());
+    const rowIndex = row.index();
+    const rowData = this.data[rowIndex];
+    const colIndex = $cell.index();
+    const columnName = this.table.settings().init().columns[colIndex].data;
+    const currentValue = rowData[columnName] || "";
+
+    const $input = $('<input type="text" class="edit-text-input">').val(currentValue);
+    $cell.html($input);
+    $input.focus().select();
+
+    let saved = false;
+
+    const save = async () => {
+      if (saved) return;
+      saved = true;
+
+      const newValue = $input.val().trim();
+      if (!newValue || newValue === currentValue) {
+        this.table.row(rowIndex).data(rowData).draw(false);
+        return;
+      }
+
+      if (columnName === "ProjectNumber" || columnName === "ProjectName") {
+        const fieldName = columnName === "ProjectNumber" ? "מספר הפרויקט" : "שם הפרויקט";
+        const result = await Swal.fire({
+          icon: "warning",
+          title: "שינוי שדה קריטי",
+          html: `האם אתה בטוח שברצונך לשנות את <strong>${fieldName}</strong>?<br>שינוי זה ישפיע על זיהוי הפרויקט במערכת.`,
+          confirmButtonText: "כן, שנה",
+          showCancelButton: true,
+          cancelButtonText: "ביטול",
+          confirmButtonColor: "#e74c3c",
+        });
+        if (!result.isConfirmed) {
+          this.table.row(rowIndex).data(rowData).draw(false);
+          return;
+        }
+      }
+
+      this.saveCell($cell, rowIndex, columnName, newValue);
+    };
+
+    $input.on("blur", save);
+    $input.on("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); $input.trigger("blur"); }
+      if (e.key === "Escape") { saved = true; this.table.row(rowIndex).data(rowData).draw(false); }
+    });
+  },
+
+  /**
+   * Handle inline select edit for Priority / AssignedTo (admin only)
+   */
+  handleInlineSelectCellClick(cell, columnName, options) {
+    if (!Auth.isAdmin()) return;
+    const $cell = $(cell);
+    if ($cell.find(".edit-select, .cs-trigger").length > 0) return;
+
+    const row = this.table.row($cell.parent());
+    const rowIndex = row.index();
+    const rowData = this.data[rowIndex];
+    const currentValue = rowData[columnName] || "";
+
+    this.createEditControl($cell, rowIndex, columnName, currentValue, options);
   },
 
   /**
@@ -528,12 +688,13 @@ const App = {
       .done(() => {
         $cell.addClass("cell-saved");
         setTimeout(() => $cell.removeClass("cell-saved"), 800);
+        this.showToast("הנתונים נשמרו בהצלחה", "success", 1500);
       })
       .fail(() => {
         // Revert on failure
         this.data[rowIndex][columnName] = oldValue;
         this.table.row(rowIndex).data(this.data[rowIndex]).draw(false);
-        this.showToast("שגיאה בשמירת הנתונים");
+        this.showToast("שגיאה בשמירת הנתונים", "error");
       });
   },
 
@@ -657,6 +818,20 @@ const App = {
     // Prevent modal content click from closing
     $(".modal").on("click", (e) => {
       e.stopPropagation();
+    });
+
+    // My projects filter checkbox
+    $("#myProjectsFilter").on("change", () => {
+      if (this.table) {
+        this.table.draw();
+        this.updateProjectCount();
+      }
+    });
+
+    // Deleted projects toggle (admin only)
+    $("#deletedProjectsFilter").on("change", () => {
+      this.showingDeleted = $("#deletedProjectsFilter").is(":checked");
+      this.loadData();
     });
 
     this.bindCommentsModalFooterEvents();
@@ -860,6 +1035,19 @@ const App = {
       return;
     }
 
+    if (!assignedTo) {
+      const result = await Swal.fire({
+        icon: "warning",
+        title: "לא נבחר עובד",
+        text: "לא נבחר עובד לשיוך הפרויקט. האם ברצונך להמשיך בכל זאת?",
+        confirmButtonText: "המשך",
+        showCancelButton: true,
+        cancelButtonText: "חזור",
+        customClass: { confirmButton: "swal-btn" },
+      });
+      if (!result.isConfirmed) return;
+    }
+
     const payload = {
       ProjectNumber:    projectNumber,
       ProjectName:      projectName,
@@ -944,12 +1132,19 @@ const App = {
   confirmDelete(rowIndex) {
     const project = this.data[rowIndex];
     $("#deleteProjectName").text(project.ProjectName);
+    $("#deleteReasonText").val("").removeClass("input-error");
     $("#deleteConfirmModal").addClass("show");
 
     $("#confirmDeleteBtn")
       .off("click")
       .on("click", () => {
-        this.deleteProject(rowIndex);
+        const reason = $("#deleteReasonText").val().trim();
+        if (!reason) {
+          $("#deleteReasonText").addClass("input-error");
+          return;
+        }
+        this.hideModal();
+        this.deleteProject(rowIndex, reason);
       });
 
     $("#cancelDeleteBtn")
@@ -962,12 +1157,17 @@ const App = {
   /**
    * Soft-delete project via API (IsDeleted: true)
    */
-  async deleteProject(rowIndex) {
+  async deleteProject(rowIndex, reason) {
     const row = this.data[rowIndex];
     const payload = { ...this.buildProjectPayload(row), IsDeleted: true };
 
     startLoader("מוחק פרויקט...");
     try {
+      await ApiClient.addComment({
+        ProjectId:   row.ProjectId,
+        CommentText: reason,
+        UserId:      Auth.getCurrentUser().userId,
+      });
       await ApiClient.updateProject(payload);
       stopLoader();
       this.data.splice(rowIndex, 1);
@@ -1037,7 +1237,7 @@ const App = {
         this.renderComments(active);
       })
       .fail(() => {
-        this.showToast("שגיאה בטעינת הערות");
+        this.showToast("שגיאה בטעינת הערות", "error");
         $("#commentsModalBody").html('<p class="comments-empty">לא ניתן לטעון הערות</p>');
       })
       .always(() => {
@@ -1154,7 +1354,7 @@ const App = {
         })
         .fail((err) => {
           stopLoader();
-          this.showToast(err.responseJSON?.message || "שגיאה בעדכון ההערה");
+          this.showToast(err.responseJSON?.message || "שגיאה בעדכון ההערה", "error");
         });
     });
 
@@ -1198,7 +1398,7 @@ const App = {
         })
         .fail((err) => {
           stopLoader();
-          this.showToast(err.responseJSON?.message || "שגיאה במחיקת ההערה");
+          this.showToast(err.responseJSON?.message || "שגיאה במחיקת ההערה", "error");
         });
     });
   },
@@ -1249,7 +1449,7 @@ const App = {
         })
         .fail((err) => {
           stopLoader();
-          this.showToast(err.responseJSON?.message || "שגיאה בהוספת ההערה");
+          this.showToast(err.responseJSON?.message || "שגיאה בהוספת ההערה", "error");
         });
     });
   },
@@ -1257,22 +1457,19 @@ const App = {
   /**
    * Show toast message
    */
-  showToast(message) {
+  showToast(message, icon = "success", timer = 3000) {
     const Toast = Swal.mixin({
       toast: true,
       position: "bottom",
       showConfirmButton: false,
-      timer: 3000,
+      timer,
       timerProgressBar: true,
       didOpen: (toast) => {
         toast.onmouseenter = Swal.stopTimer;
         toast.onmouseleave = Swal.resumeTimer;
       },
     });
-    Toast.fire({
-      icon: "success",
-      title: message,
-    });
+    Toast.fire({ icon, title: message });
   },
 };
 

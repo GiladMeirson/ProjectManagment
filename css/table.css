@@ -38,7 +38,6 @@ table.dataTable tbody td {
   font-size: 0.88rem;
   color: var(--gray-700);
   transition: background-color 0.1s;
-  
 }
 
 /* Even row tint — subtle zebra */
@@ -90,7 +89,9 @@ table.dataTable thead .sorting_desc:after {
   font-family: var(--font);
   font-size: 0.875rem;
   background: white;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .dataTables_filter input:focus {
@@ -141,7 +142,9 @@ table.dataTable thead .sorting_desc:after {
   background: white !important;
   color: var(--gray-600) !important;
   font-size: 0.82rem;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 
 #projectsTable_wrapper .dataTables_paginate .paginate_button:hover {
@@ -197,9 +200,87 @@ table.dataTable thead .sorting_desc:after {
   justify-content: center;
 }
 
+/* ---- Editable cell pencil indicator ---- */
+/* Position context */
+.is-admin td.inline-text-cell,
+.is-admin td.inline-select-cell,
+.is-admin td.editable-cell,
+td.status-cell {
+  position: relative;
+}
+
+/* Show pencil on hover for the specific cell being hovered */
+.is-admin td.inline-text-cell:hover::after,
+.is-admin td.inline-select-cell:hover::after,
+.is-admin td.editable-cell:hover::after,
+td.status-cell:hover::after {
+  content: "✎";
+  position: absolute;
+  top: 30%;
+  left: 0px;
+  font-size: 1.2rem;
+  color: var(--warning-color, #eb8825);
+  opacity: 0.55;
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* ---- Inline text edit input (admin) ---- */
+.edit-text-input {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1.5px solid var(--primary-color);
+  border-radius: var(--radius);
+  font-family: var(--font);
+  font-size: 0.88rem;
+  color: var(--gray-700);
+  background: white;
+  outline: none;
+  box-sizing: border-box;
+  min-width: 80px;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
   table.dataTable {
     min-width: 1000px;
   }
+}
+
+/* ---- My projects filter ---- */
+.filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.filter-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--gray-600);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.filter-checkbox-label input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--brand-primary, #667eea);
+  cursor: pointer;
+}
+.filter-checkbox-deleted {
+  color: var(--danger, #dc3545);
+}
+
+.filter-checkbox-deleted input[type="checkbox"] {
+  accent-color: var(--danger, #dc3545);
+}
+
+.admin-buttons {
+  display: flex;
+  gap: 15px;
 }

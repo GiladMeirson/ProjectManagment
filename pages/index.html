@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="he" dir="rtl">
   <head>
     <meta charset="UTF-8" />
@@ -70,23 +70,44 @@
               <h2>רשימת פרויקטים</h2>
               <span class="card-count" id="projectCount"></span>
             </div>
-            <button id="quickAddProjectBtn" class="btn btn-subtle-success hidden">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                stroke-linejoin="round" aria-hidden="true">
-                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              פרויקט חדש
-            </button>
-            <button id="adminMenuBtn" class="btn btn-primary hidden">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="3" /><path
-                  d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
-              </svg>
-              פעולות מנהל
-            </button>
+
+            <div class="admin-buttons">
+              <div class="filter-controls">
+                <span id="deletedProjectsFilterWrap" class="hidden">
+                  <label class="filter-checkbox-label filter-checkbox-deleted">
+                    <input type="checkbox" id="deletedProjectsFilter" />
+                    <span>הצג פרוייקטים שנמחקו</span>
+                  </label>
+                </span>
+                <label class="filter-checkbox-label">
+                  <input type="checkbox" id="myProjectsFilter" />
+                  <span>הצג פרויקטים שלי בלבד</span>
+                </label>
+
+              </div>
+              <button id="quickAddProjectBtn"
+                class="btn btn-subtle-success hidden">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12"
+                    x2="19" y2="12" />
+                </svg>
+                פרויקט חדש
+              </button>
+              <button id="adminMenuBtn" class="btn btn-primary hidden">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="3" /><path
+                    d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+                </svg>
+                פעולות מנהל
+              </button>
+            </div>
+
           </div>
           <div class="card-body">
             <table id="projectsTable" class="display"
@@ -158,8 +179,10 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-subtle-success">שמור פרויקט</button>
-            <button type="button" class="btn btn-subtle-danger modal-close">ביטול</button>
+            <button type="submit" class="btn btn-subtle-success">שמור
+              פרויקט</button>
+            <button type="button"
+              class="btn btn-subtle-danger modal-close">ביטול</button>
           </div>
         </form>
       </div>
@@ -240,8 +263,10 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-subtle-success">שמור שינויים</button>
-            <button type="button" class="btn btn-subtle-danger modal-close">ביטול</button>
+            <button type="submit" class="btn btn-subtle-success">שמור
+              שינויים</button>
+            <button type="button"
+              class="btn btn-subtle-danger modal-close">ביטול</button>
           </div>
         </form>
       </div>
@@ -303,8 +328,10 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-subtle-success">הוסף עובד</button>
-            <button type="button" class="btn btn-subtle-danger modal-close">ביטול</button>
+            <button type="submit" class="btn btn-subtle-success">הוסף
+              עובד</button>
+            <button type="button"
+              class="btn btn-subtle-danger modal-close">ביטול</button>
           </div>
         </form>
       </div>
@@ -322,10 +349,15 @@
             האם אתה בטוח שברצונך למחוק את הפרויקט<br />
             <strong id="deleteProjectName"></strong>?
           </p>
-          <p class="warning-text">פעולה זו אינה ניתנת לביטול</p>
+          <div class="form-group">
+            <label for="deleteReasonText">סיבת המחיקה <span style="color:var(--danger-color)">*</span></label>
+            <textarea id="deleteReasonText" rows="3" placeholder="הזן סיבת מחיקה..."></textarea>
+            <small class="field-error-msg">יש להזין סיבת מחיקה לפני המשך</small>
+          </div>
         </div>
         <div class="modal-footer modal-footer-center">
-          <button id="confirmDeleteBtn" class="btn btn-subtle-danger">מחק</button>
+          <button id="confirmDeleteBtn"
+            class="btn btn-subtle-danger">מחק</button>
           <button id="cancelDeleteBtn" class="btn btn-outline">ביטול</button>
         </div>
       </div>
@@ -346,13 +378,17 @@
         </div>
         <div class="modal-footer comments-modal-footer">
           <div id="addCommentForm" class="add-comment-form hidden">
-            <textarea id="newCommentText" rows="3" placeholder="כתוב הערה..."></textarea>
+            <textarea id="newCommentText" rows="3"
+              placeholder="כתוב הערה..."></textarea>
             <div class="add-comment-actions">
-              <button id="submitCommentBtn" class="btn btn-subtle-success">שמור הערה</button>
-              <button id="cancelCommentBtn" class="btn btn-subtle-danger">ביטול</button>
+              <button id="submitCommentBtn" class="btn btn-subtle-success">שמור
+                הערה</button>
+              <button id="cancelCommentBtn"
+                class="btn btn-subtle-danger">ביטול</button>
             </div>
           </div>
-          <button id="toggleAddCommentBtn" class="btn btn-primary">+ הוסף הערה</button>
+          <button id="toggleAddCommentBtn" class="btn btn-primary">+ הוסף
+            הערה</button>
         </div>
       </div>
     </div>

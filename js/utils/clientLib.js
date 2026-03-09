@@ -61,10 +61,11 @@ const ApiClient = {
     });
   },
 
-  getAllProjects() {
+  getAllProjects(params = {}) {
     return $.ajax({
       url: `${this.BASE_URL}/projects`,
       method: "GET",
+      data: params,
     });
   },
 

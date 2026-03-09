@@ -70,9 +70,17 @@
               <h2>רשימת משתמשים</h2>
               <span class="card-count" id="userCount"></span>
             </div>
-            <button id="addUserBtn" class="btn btn-primary">
-              + הוסף משתמש
-            </button>
+            <div class="admin-buttons">
+              <div class="filter-controls">
+                <label class="filter-checkbox-label filter-checkbox-deleted">
+                  <input type="checkbox" id="deletedUsersFilter" />
+                  <span>הצג משתמשים שנמחקו</span>
+                </label>
+              </div>
+              <button id="addUserBtn" class="btn btn-primary">
+                + הוסף משתמש
+              </button>
+            </div>
           </div>
           <div class="card-body">
             <table id="usersTable" class="display" style="width:100%"></table>

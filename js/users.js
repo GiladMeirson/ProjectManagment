@@ -11,6 +11,7 @@ const UsersApp = {
   table: null,
   data: [],
   currentUser: null,
+  showingDeleted: false,
 
   /**
    * Initialize the users page (admin only)
@@ -41,7 +42,10 @@ const UsersApp = {
     startLoader("טוען משתמשים...");
     try {
       const users = await ApiClient.getAllUsers();
-      this.data = users;
+      this.data = users.filter((u) =>
+        this.showingDeleted ? u.IsDeleted : !u.IsDeleted
+      );
+      $("#addUserBtn").toggleClass("hidden", this.showingDeleted);
 
       if (this.table) {
         this.table.destroy();
@@ -168,15 +172,33 @@ const UsersApp = {
           orderable: false,
           searchable: false,
           className: "text-center",
-          render: (_data, _type, _row, meta) => `
-            <div class="action-buttons">
-              <button class="btn btn-subtle-primary btn-icon btn-sm edit-user-btn"
-                      data-row="${meta.row}"
-                      title="ערוך משתמש">
-                ✎
-              </button>
-            </div>
-          `,
+          render: (_data, _type, _row, meta) => {
+            if (self.showingDeleted) {
+              return `
+                <div class="action-buttons">
+                  <button class="btn btn-subtle-success btn-icon btn-sm restore-user-btn"
+                          data-row="${meta.row}"
+                          title="שחזר משתמש">
+                    ↩
+                  </button>
+                </div>
+              `;
+            }
+            return `
+              <div class="action-buttons">
+                <button class="btn btn-subtle-primary btn-icon btn-sm edit-user-btn"
+                        data-row="${meta.row}"
+                        title="ערוך משתמש">
+                  ✎
+                </button>
+                <button class="btn btn-subtle-danger btn-icon btn-sm delete-user-btn"
+                        data-row="${meta.row}"
+                        title="מחק משתמש">
+                  ✕
+                </button>
+              </div>
+            `;
+          },
         },
       ],
       language: {
@@ -224,6 +246,72 @@ const UsersApp = {
       const rowIndex = $(this).data("row");
       self.showEditModal(rowIndex);
     });
+
+    // Delete user button
+    $("#usersTable tbody").on("click", ".delete-user-btn", async function () {
+      const rowIndex = parseInt($(this).data("row"));
+      const user = self.data[rowIndex];
+      const result = await Swal.fire({
+        title: "מחיקת משתמש",
+        text: `האם למחוק את המשתמש "${user.UserName}"?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "מחק",
+        cancelButtonText: "ביטול",
+      });
+      if (!result.isConfirmed) return;
+      startLoader("מוחק משתמש...");
+      try {
+        await ApiClient.updateUser({
+          userId: user.UserId,
+          userName: user.UserName,
+          email: user.Email,
+          password: user.Password || "",
+          permissions: user.Permissions,
+          Role: user.Role,
+          IsDeleted: true,
+        });
+        stopLoader();
+        self.showToast("המשתמש נמחק בהצלחה");
+        await self.loadData();
+      } catch {
+        stopLoader();
+        Swal.fire({ icon: "error", title: "שגיאה", text: "לא ניתן למחוק את המשתמש", confirmButtonText: "אישור" });
+      }
+    });
+
+    // Restore user button
+    $("#usersTable tbody").on("click", ".restore-user-btn", async function () {
+      const rowIndex = parseInt($(this).data("row"));
+      const user = self.data[rowIndex];
+      const result = await Swal.fire({
+        title: "שחזור משתמש",
+        text: `האם לשחזר את המשתמש "${user.UserName}"?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "שחזר",
+        cancelButtonText: "ביטול",
+      });
+      if (!result.isConfirmed) return;
+      startLoader("משחזר משתמש...");
+      try {
+        await ApiClient.updateUser({
+          userId: user.UserId,
+          userName: user.UserName,
+          email: user.Email,
+          password: user.Password || "",
+          permissions: user.Permissions,
+          Role: user.Role,
+          IsDeleted: false,
+        });
+        stopLoader();
+        self.showToast("המשתמש שוחזר בהצלחה");
+        await self.loadData();
+      } catch {
+        stopLoader();
+        Swal.fire({ icon: "error", title: "שגיאה", text: "לא ניתן לשחזר את המשתמש", confirmButtonText: "אישור" });
+      }
+    });
   },
 
   /**
@@ -261,6 +349,12 @@ const UsersApp = {
     $("#editUserForm").on("submit", (e) => {
       e.preventDefault();
       this.saveEditUser();
+    });
+
+    // Deleted users filter toggle
+    $("#deletedUsersFilter").on("change", () => {
+      this.showingDeleted = $("#deletedUsersFilter").is(":checked");
+      this.loadData();
     });
 
     // Close modals
