@@ -5,10 +5,10 @@
  */
 
 const ApiClient = {
-  BASE_URL:
-    location.host === "" || location.host.includes("localhost")
-      ? "http://localhost:3000"
-      : "https://projectmanagmentserver.onrender.com",
+  BASE_URL: "https://projectmanagmentserver.onrender.com",
+  // location.host === "" || location.host.includes("localhost")
+  //   ? "http://localhost:3000"
+  //   : "https://projectmanagmentserver.onrender.com",
 
   /**
    * Sign in a user with email and password
