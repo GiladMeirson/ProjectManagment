@@ -79,16 +79,19 @@
 .badge-yes {
   background: #d1fae5;
   color: #047857;
+  border: 1px solid #a7f3d0;
 }
 
 .badge-no {
   background: #fef2f2;
   color: #dc2626;
+  border: 1px solid #fecaca;
 }
 
 .badge-empty {
   background: var(--gray-100);
   color: var(--gray-400);
+  border: 1px solid var(--gray-200);
 }
 
 /* ---- Inline cell-edit indicators ---- */
@@ -127,33 +130,81 @@
 .yes-no-cell {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 5px;
+  align-items: center;
+  gap: 6px;
 }
 
 .executed-label {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 10px;
   cursor: default;
-  font-size: 0.72rem;
-  color: var(--gray-500);
+  font-size: 0.7rem;
+  color: var(--gray-400);
   user-select: none;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 20px;
+  padding: 6px 8px 6px 11px;
+  white-space: nowrap;
+  transition: border-color 0.15s, background 0.15s;
 }
 
+.executed-label:has(.executed-check:not([disabled])) {
+  cursor: pointer;
+}
+
+.executed-label:has(.executed-check:not([disabled])):hover {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+/* Custom checkbox */
 .executed-check {
+  appearance: none;
+  -webkit-appearance: none;
   width: 14px;
   height: 14px;
-  accent-color: #16a34a;
+  border: 1.5px solid var(--gray-300);
+  border-radius: 3px;
+  background: white;
   flex-shrink: 0;
+  transition: all 0.15s ease;
+  position: relative;
+  cursor: pointer;
 }
 
-.executed-check:not([disabled]) {
-  cursor: pointer;
+.executed-check:checked {
+  background: #16a34a;
+  border-color: #16a34a;
+}
+
+.executed-check:checked::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 0px;
+  width: 4px;
+  height: 8px;
+  border: 2px solid white;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+.executed-check[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.executed-check:not([disabled]):hover {
+  border-color: #16a34a;
 }
 
 .executed-text {
   white-space: nowrap;
+  line-height: 1;
 }
 
 /* ---- Save flash animation ---- */

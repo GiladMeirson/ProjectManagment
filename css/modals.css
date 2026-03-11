@@ -44,7 +44,7 @@
 
 /* Size modifiers */
 .modal-sm {
-  max-width: 300px;
+  max-width: 360px;
 }
 
 .modal-confirm {
@@ -68,7 +68,8 @@
   color: var(--gray-800);
 }
 
-.modal-close {
+/* Header × close button only — scoped so it doesn't override .btn on footer cancel buttons */
+.modal-header .modal-close {
   background: none;
   border: none;
   font-size: 2rem;
@@ -80,7 +81,7 @@
   transition: background 0.15s, color 0.15s;
 }
 
-.modal-close:hover {
+.modal-header .modal-close:hover {
   background: var(--gray-200);
   color: var(--danger-color);
 }
@@ -97,6 +98,18 @@
   display: flex;
   justify-content: flex-start;
   gap: 12px;
+}
+
+/* Cancel buttons in modal footers always red-outlined */
+.modal-footer .btn-outline.modal-close {
+  color: var(--danger-color);
+  border-color: var(--danger-color);
+  background: transparent;
+}
+
+.modal-footer .btn-outline.modal-close:hover {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: var(--danger-color);
 }
 
 .modal-footer-center {

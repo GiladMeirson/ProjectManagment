@@ -200,6 +200,11 @@ table.dataTable thead .sorting_desc:after {
   justify-content: center;
 }
 
+/* ---- Center yes/no cells ---- */
+table.dataTable tbody td:has(.yes-no-cell) {
+  text-align: center;
+}
+
 /* ---- Editable cell pencil indicator ---- */
 /* Position context */
 .is-admin td.inline-text-cell,

@@ -118,25 +118,37 @@
 .swal-btn,
 .swal2-confirm {
   background: var(--primary-color) !important;
+  border: 1.5px solid var(--primary-color) !important;
   border-radius: var(--radius) !important;
-  font-weight: 500 !important;
-  padding: 10px 24px !important;
-  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  padding: 9px 22px !important;
+  font-size: 0.875rem !important;
+  box-shadow: none !important;
 }
 
 .swal2-confirm:hover {
   background: var(--primary-hover) !important;
+  border-color: var(--primary-hover) !important;
 }
 
 .swal2-cancel {
-  background: transparent !important;
-  color: var(--gray-600) !important;
-  border: 1px solid var(--gray-300) !important;
+  background: white !important;
+  color: var(--gray-700) !important;
+  border: 1.5px solid var(--gray-300) !important;
   border-radius: var(--radius) !important;
+  font-weight: 600 !important;
+  padding: 9px 22px !important;
+  font-size: 0.875rem !important;
+  box-shadow: none !important;
 }
 
 .swal2-cancel:hover {
-  background: var(--gray-100) !important;
+  background: var(--gray-50) !important;
+  border-color: var(--gray-400) !important;
+}
+
+.swal2-actions {
+  gap: 10px !important;
 }
 
 .swal2-popup.swal2-toast {
@@ -151,31 +163,49 @@
 .admin-menu-list {
   display: flex;
   flex-direction: column;
-  padding: 0.3rem 0;
+  padding: 8px;
+  gap: 2px;
 }
 
 .admin-menu-item {
   background: none;
-  border: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
   text-align: right;
-  padding: 0.8rem 1.25rem;
-  font-size: 0.9rem;
+  padding: 11px 14px;
+  font-size: 0.875rem;
   font-family: var(--font);
+  font-weight: 500;
   cursor: pointer;
   color: var(--gray-700);
-  border-bottom: 1px solid var(--gray-100);
-  transition: background 0.14s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.admin-menu-item:last-child {
-  border-bottom: none;
+.admin-menu-item::after {
+  content: "‹";
+  font-size: 1rem;
+  color: var(--gray-300);
+  transition: color 0.15s, transform 0.15s;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 .admin-menu-item:hover {
-  background: var(--green-hover);
-  box-shadow:
-    rgba(50, 50, 93, 0.25) 0px 50px 100px -20px,
-    rgba(0, 0, 0, 0.3) 0px 30px 60px -30px,
-    rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;
+  background: #eef3ff;
+  border-color: #c7d2fe;
+  color: #1d4ed8;
+}
+
+.admin-menu-item:hover::after {
+  color: #1d4ed8;
+  transform: translateX(-3px);
+}
+
+.admin-menu-item:active {
+  background: #dbeafe;
+  border-color: #93c5fd;
 }
