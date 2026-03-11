@@ -35,6 +35,7 @@ const App = {
   _currentCommentsProjectId: null,
   _cachedUserNames: [],
   showingDeleted: false,
+  _pollingInterval: null,
 
   /**
    * Initialize the application
@@ -51,6 +52,7 @@ const App = {
     // Enhance static selects in the employee modal on first load
     enhanceAllSelects(document.getElementById('addEmployeeModal'));
 
+    window.addEventListener('beforeunload', () => this.stopPolling());
     await this.loadData();
   },
 
@@ -58,6 +60,7 @@ const App = {
    * Fetch projects from API, transform and render table
    */
   async loadData() {
+    this.stopPolling();
     startLoader("טוען פרויקטים...");
     try {
       const [projects, usernames] = await Promise.all([
@@ -76,6 +79,7 @@ const App = {
 
       this.initDataTable();
       this.updateProjectCount();
+      this.startPolling();
     } catch (err) {
       Swal.fire({
         icon: "error",
@@ -145,6 +149,63 @@ const App = {
       LastUpdated:      Date.now(),
       IsDeleted:        false,
     };
+  },
+
+  /**
+   * Start the 60-second background poll for project changes
+   */
+  startPolling() {
+    this.stopPolling();
+    this._pollingInterval = setInterval(() => this._pollProjects(), 45_000);
+  },
+
+  /**
+   * Stop the background poll (called before full reloads and on page unload)
+   */
+  stopPolling() {
+    if (this._pollingInterval) {
+      clearInterval(this._pollingInterval);
+      this._pollingInterval = null;
+    }
+  },
+
+  /**
+   * Silently fetch projects and add/remove rows if the list has changed.
+   * Never shows a loader or error dialog — must not interrupt the user.
+   */
+  async _pollProjects() {
+    try {
+      const params = this.showingDeleted ? { isDeleted: true } : {};
+      const rawProjects = await ApiClient.getAllProjects(params);
+      const fetched = this.transformProjects(rawProjects);
+
+      const currentIds = new Set(this.data.map(p => p.ProjectId));
+      const fetchedIds  = new Set(fetched.map(p => p.ProjectId));
+
+      const added      = fetched.filter(p => !currentIds.has(p.ProjectId));
+      const removedIds = [...currentIds].filter(id => !fetchedIds.has(id));
+
+      if (added.length === 0 && removedIds.length === 0) return;
+
+      added.forEach(project => {
+        this.data.push(project);
+        this.table.row.add(project);
+      });
+
+      removedIds.forEach(id => {
+        const idx = this.data.findIndex(p => p.ProjectId === id);
+        if (idx !== -1) this.data.splice(idx, 1);
+        this.table.rows().every(function() {
+          if (this.data().ProjectId === id) this.remove();
+        });
+      });
+
+      this.table.draw(false);
+      this.updateProjectCount();
+      this.showToast("הטבלה עודכנה אוטומטית", "info", 2000);
+    } catch (_) {
+      // silent — never interrupt the user on poll failure
+    }
   },
 
   /**
@@ -894,12 +955,9 @@ const App = {
     // AssignedTo dropdown
     const $assigned = $("#editAssignedTo");
     $assigned.empty().append('<option value="">-- בחר --</option>');
-    try {
-      const usernames = await ApiClient.getUserNames();
-      usernames.forEach((name) => {
-        $assigned.append(`<option value="${name}">${name}</option>`);
-      });
-    } catch (_) { /* ignore — dropdown stays with blank option */ }
+    this._cachedUserNames.forEach((name) => {
+      $assigned.append(`<option value="${name}">${name}</option>`);
+    });
 
     // Status dropdown
     const $status = $("#editStatus");
@@ -994,12 +1052,9 @@ const App = {
     const $assigned = $("#newAssignedTo");
     $assigned.empty();
     $assigned.append('<option value="">-- בחר --</option>');
-    try {
-      const usernames = await ApiClient.getUserNames();
-      usernames.forEach((name) => {
-        $assigned.append(`<option value="${name}">${name}</option>`);
-      });
-    } catch (_) { /* ignore */ }
+    this._cachedUserNames.forEach((name) => {
+      $assigned.append(`<option value="${name}">${name}</option>`);
+    });
 
     // Yes/No dropdowns
     ["#newChachi", "#newBezeq", "#newHot"].forEach((selector) => {

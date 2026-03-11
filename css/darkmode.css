@@ -1,0 +1,468 @@
+/* ==========================================
+   Dark Mode — [data-theme="dark"] overrides
+   Activated via console: darkmode() / lightmode()
+   ========================================== */
+
+/* ---- CSS variable overrides ---- */
+[data-theme="dark"] {
+  /* Invert the gray scale so light → dark surfaces */
+  --gray-50:  #161b2e;
+  --gray-100: #1e2436;
+  --gray-200: #2a3045;
+  --gray-300: #3a4060;
+  --gray-400: #6b7280;
+  --gray-500: #9ca3af;
+  --gray-600: #d1d5db;
+  --gray-700: #e5e7eb;
+  --gray-800: #f3f4f6;
+
+  /* Slightly softer shadows for dark surfaces */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.25);
+  --shadow:    0 1px 3px 0 rgb(0 0 0 / 0.35), 0 1px 2px -1px rgb(0 0 0 / 0.35);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.35), 0 2px 4px -2px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+}
+
+/* ==========================================
+   base.css — body
+   ========================================== */
+
+/* Body background: keep brand gradient — looks great on dark */
+
+/* ==========================================
+   layout.css — app shell
+   ========================================== */
+
+[data-theme="dark"] .app-container {
+  background: #111827;
+}
+
+[data-theme="dark"] .header {
+  background: #1a1f2e;
+  box-shadow: 0 1px 0 #2a3045, 0 2px 12px rgb(0 0 0 / 0.3);
+}
+
+[data-theme="dark"] .user-info {
+  background: #1e2436;
+  border-color: #2a3045;
+}
+
+[data-theme="dark"] .user-info:hover {
+  background: #242b42;
+}
+
+[data-theme="dark"] .card {
+  background: #1e2436;
+  border-color: #2a3045;
+}
+
+[data-theme="dark"] .card-header {
+  background: #161b2e;
+  border-bottom-color: #2a3045;
+}
+
+/* ==========================================
+   buttons.css
+   ========================================== */
+
+[data-theme="dark"] .btn-outline {
+  background: #1e2436;
+  color: #e5e7eb;
+  border-color: #3a4060;
+}
+
+[data-theme="dark"] .btn-outline:hover {
+  background: #242b42;
+  border-color: #4b5a7a;
+}
+
+/* ==========================================
+   forms.css — inputs, selects, textareas
+   ========================================== */
+
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group select,
+[data-theme="dark"] .form-group textarea {
+  background: #1e2436;
+  color: #e5e7eb;
+  border-color: #2a3045;
+}
+
+[data-theme="dark"] .form-group input:focus,
+[data-theme="dark"] .form-group select:focus,
+[data-theme="dark"] .form-group textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+[data-theme="dark"] .edit-input,
+[data-theme="dark"] .edit-select {
+  background: #1e2436;
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .error-message {
+  background: #2d1515;
+  border-color: #5a1e1e;
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .stub-text code {
+  background: #2a3045;
+  border-color: #3a4060;
+}
+
+/* ==========================================
+   forms.css — custom select component (.cs-*)
+   ========================================== */
+
+[data-theme="dark"] .cs-trigger {
+  background: #1e2436;
+  color: #e5e7eb;
+  border-color: #2a3045;
+}
+
+[data-theme="dark"] .cs-trigger:hover {
+  border-color: var(--primary-color);
+}
+
+[data-theme="dark"] .cs-dropdown {
+  background: #1e2436;
+  border-color: var(--primary-color);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* ==========================================
+   badges.css
+   ========================================== */
+
+/* Priority */
+[data-theme="dark"] .badge-priority-urgent {
+  background: #2d1515;
+  color: #fca5a5;
+  border-color: #5a1e1e;
+}
+
+[data-theme="dark"] .badge-priority-new {
+  background: #052e16;
+  color: #86efac;
+  border-color: #14532d;
+}
+
+[data-theme="dark"] .badge-priority-hold {
+  background: #1e2436;
+  color: #9ca3af;
+  border-color: #2a3045;
+}
+
+/* Status */
+[data-theme="dark"] .badge-status-waiting {
+  background: #2d1f00;
+  color: #fbbf24;
+  border-color: #4a3300;
+}
+
+[data-theme="dark"] .badge-status-working {
+  background: #0d1d3a;
+  color: #93c5fd;
+  border-color: #1e3a6a;
+}
+
+[data-theme="dark"] .badge-status-review {
+  background: #1a1547;
+  color: #a5b4fc;
+  border-color: #2e2880;
+}
+
+[data-theme="dark"] .badge-status-updated {
+  background: #022c22;
+  color: #6ee7b7;
+  border-color: #044a36;
+}
+
+[data-theme="dark"] .badge-status-tender {
+  background: #240a4a;
+  color: #d8b4fe;
+  border-color: #4c1d95;
+}
+
+[data-theme="dark"] .badge-status-execution {
+  background: #022928;
+  color: #5eead4;
+  border-color: #044645;
+}
+
+[data-theme="dark"] .badge-status-special {
+  background: #2d0f20;
+  color: #f9a8d4;
+  border-color: #5a1a3a;
+}
+
+/* Yes / No */
+[data-theme="dark"] .badge-yes {
+  background: #022c22;
+  color: #6ee7b7;
+  border-color: #044a36;
+}
+
+[data-theme="dark"] .badge-no {
+  background: #2d1515;
+  color: #fca5a5;
+  border-color: #5a1e1e;
+}
+
+[data-theme="dark"] .badge-empty {
+  background: #1e2436;
+  color: #6b7280;
+  border-color: #2a3045;
+}
+
+/* Executed label */
+[data-theme="dark"] .executed-label {
+  background: #1e2436;
+  border-color: #2a3045;
+  color: #9ca3af;
+}
+
+[data-theme="dark"] .executed-label:has(.executed-check:not([disabled])):hover {
+  border-color: #16a34a;
+  background: #052e16;
+  color: #86efac;
+}
+
+[data-theme="dark"] .executed-check {
+  background: #1e2436;
+  border-color: #3a4060;
+}
+
+/* ==========================================
+   modals.css — modal dialogs
+   ========================================== */
+
+[data-theme="dark"] .modal {
+  background: #1e2436;
+}
+
+[data-theme="dark"] .modal-header {
+  background: #161b2e;
+  border-bottom-color: #2a3045;
+}
+
+[data-theme="dark"] .modal-header .modal-close:hover {
+  background: #2a3045;
+}
+
+[data-theme="dark"] .modal-footer {
+  border-top-color: #2a3045;
+}
+
+/* Comment cards */
+[data-theme="dark"] .comment-card {
+  background: #161b2e;
+  border-color: #2a3045;
+}
+
+[data-theme="dark"] .comment-text {
+  color: #d1d5db;
+}
+
+[data-theme="dark"] .btn-icon {
+  color: #9ca3af;
+}
+
+[data-theme="dark"] .btn-icon:hover {
+  background: #2a3045;
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .btn-icon.delete-comment-btn:hover {
+  background: #2d1515;
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .comment-edit-textarea,
+[data-theme="dark"] .add-comment-form textarea {
+  background: #1e2436;
+  color: #e5e7eb;
+  border-color: #2a3045;
+}
+
+[data-theme="dark"] .comment-edit-textarea:focus,
+[data-theme="dark"] .add-comment-form textarea:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.25);
+}
+
+[data-theme="dark"] .comment-delete-confirm span {
+  color: #9ca3af;
+}
+
+[data-theme="dark"] .comments-empty {
+  color: #6b7280;
+}
+
+/* ==========================================
+   table.css — DataTables
+   ========================================== */
+
+[data-theme="dark"] table.dataTable tbody td {
+  border-bottom-color: #2a3045;
+  color: #d1d5db;
+}
+
+/* Zebra stripe */
+[data-theme="dark"] table.dataTable tbody tr:nth-child(even) td {
+  background-color: #1a1f2e;
+}
+
+[data-theme="dark"] table.dataTable tbody tr:hover td {
+  background-color: #1e2a4a !important;
+}
+
+[data-theme="dark"] table.dataTable tbody tr.selected td {
+  background-color: #0d1d3a !important;
+}
+
+/* Search & length controls */
+[data-theme="dark"] .dataTables_filter input,
+[data-theme="dark"] .dataTables_length select {
+  background: #1e2436;
+  color: #e5e7eb;
+  border-color: #2a3045;
+}
+
+/* Pagination */
+[data-theme="dark"] .dataTables_paginate .paginate_button {
+  background: #1e2436 !important;
+  border-color: #2a3045 !important;
+  color: #d1d5db !important;
+}
+
+[data-theme="dark"] #projectsTable_wrapper .dataTables_paginate .paginate_button:hover {
+  background: #2a3a5a !important;
+  border-color: #3a4060 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Export buttons */
+[data-theme="dark"] .dt-buttons .dt-button {
+  background: #1e2436 !important;
+  color: #d1d5db !important;
+  border-color: #2a3045 !important;
+}
+
+[data-theme="dark"] .dt-buttons .dt-button:hover {
+  background: #242b42 !important;
+  border-color: #3a4060 !important;
+  color: #f3f4f6 !important;
+}
+
+/* Inline text edit input */
+[data-theme="dark"] .edit-text-input {
+  background: #1e2436;
+  color: #e5e7eb;
+}
+
+/* ==========================================
+   utilities.css — loading overlay, SweetAlert2, admin menu
+   ========================================== */
+
+[data-theme="dark"] .loading-overlay {
+  background: rgba(17, 24, 39, 0.92);
+}
+
+/* SweetAlert2 */
+[data-theme="dark"] .swal2-popup {
+  background: #1e2436 !important;
+  color: #e5e7eb !important;
+}
+
+[data-theme="dark"] .swal2-title {
+  color: #f3f4f6 !important;
+}
+
+[data-theme="dark"] .swal2-html-container {
+  color: #d1d5db !important;
+}
+
+[data-theme="dark"] .swal2-cancel {
+  background: #2a3045 !important;
+  color: #e5e7eb !important;
+  border-color: #3a4060 !important;
+}
+
+[data-theme="dark"] .swal2-cancel:hover {
+  background: #3a4060 !important;
+  border-color: #4b5a7a !important;
+}
+
+/* Admin menu */
+[data-theme="dark"] .admin-menu-item {
+  color: #d1d5db;
+}
+
+[data-theme="dark"] .admin-menu-item:hover {
+  background: #1e2a4a;
+  border-color: #2e4a8a;
+  color: #93c5fd;
+}
+
+[data-theme="dark"] .admin-menu-item:hover::after {
+  color: #93c5fd;
+}
+
+[data-theme="dark"] .admin-menu-item:active {
+  background: #1a2440;
+  border-color: #2e4a8a;
+}
+
+/* ==========================================
+   login.css — login box
+   ========================================== */
+
+[data-theme="dark"] .login-box {
+  background: rgba(17, 24, 39, 0.97);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* ==========================================
+   Smooth theme transition
+   ========================================== */
+
+html {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* Apply transition to major surfaces */
+.app-container,
+.header,
+.card,
+.card-header,
+.modal,
+.modal-header,
+.comment-card,
+.login-box,
+.btn-outline,
+.cs-trigger,
+.cs-dropdown,
+.form-group input,
+.form-group select,
+.form-group textarea,
+.edit-input,
+.edit-select,
+.edit-text-input,
+.dataTables_filter input,
+.dataTables_length select,
+.dataTables_paginate .paginate_button,
+.dt-buttons .dt-button,
+table.dataTable tbody td {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease;
+}
