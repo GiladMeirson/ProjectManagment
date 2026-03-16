@@ -327,21 +327,21 @@ const App = {
         {
           data: "Chachi",
           title: 'חח"י',
-          className: "editable-cell",
+          className: "editable-cell centered-cell",
           render: (data, _type, row) =>
             this.renderYesNoWithExecuted(data, row.ChachiIsExecuted, row),
         },
         {
           data: "Bezeq",
           title: "בזק",
-          className: "editable-cell",
+          className: "editable-cell centered-cell",
           render: (data, _type, row) =>
             this.renderYesNoWithExecuted(data, row.BezeqIsExecuted, row),
         },
         {
           data: "Hot",
           title: "הוט",
-          className: "editable-cell",
+          className: "editable-cell centered-cell",
           render: (data, _type, row) =>
             this.renderYesNoWithExecuted(data, row.HotIsExecuted, row),
         },

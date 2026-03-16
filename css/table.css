@@ -27,6 +27,18 @@ table.dataTable thead th {
   border-bottom: 2px solid var(--gray-200);
   white-space: nowrap;
 }
+table.dataTable thead th:hover {
+  background: var(--gray-100);
+  box-shadow:
+    rgba(0, 0, 0, 0.19) 0px 10px 20px,
+    rgba(0, 0, 0, 0.23) 0px 6px 6px;
+  /* transform: translateY(-10px); */
+  transform: scale(1.25);
+}
+
+tbody .centered-cell {
+  text-align: center !important;
+}
 
 /* ---- Body cells ---- */
 table.dataTable tbody td {
