@@ -364,6 +364,30 @@
       </div>
     </div>
 
+    <!-- Restore Confirmation Modal -->
+    <div id="restoreConfirmModal" class="modal-overlay">
+      <div class="modal modal-confirm">
+        <div class="modal-header">
+          <h3>אישור שחזור</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body confirm-dialog">
+          <p>
+            האם אתה בטוח שברצונך לשחזר את הפרויקט<br />
+            <strong id="restoreProjectName"></strong>?
+          </p>
+          <div class="form-group">
+            <label for="restoreReasonText">סיבת השחזור</label>
+            <textarea id="restoreReasonText" rows="3" placeholder="הזן סיבת שחזור (אם ריק יוכנס טקסט אוטומטי)..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer modal-footer-center">
+          <button id="confirmRestoreBtn" class="btn btn-success">שחזר</button>
+          <button id="cancelRestoreBtn" class="btn btn-outline modal-close">ביטול</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Comments Modal -->
     <div id="commentsModal" class="modal-overlay">
       <div class="modal modal-lg">

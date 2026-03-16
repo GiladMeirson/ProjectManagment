@@ -230,6 +230,14 @@ td.status-cell:hover::after {
   line-height: 1;
 }
 
+/* Suppress pencil icon in deleted-projects mode */
+#projectsTable.deleted-mode td.inline-text-cell:hover::after,
+#projectsTable.deleted-mode td.inline-select-cell:hover::after,
+#projectsTable.deleted-mode td.editable-cell:hover::after,
+#projectsTable.deleted-mode td.status-cell:hover::after {
+  content: none;
+}
+
 /* ---- Inline text edit input (admin) ---- */
 .edit-text-input {
   width: 100%;

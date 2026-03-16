@@ -462,27 +462,10 @@ const App = {
     });
 
     // Handle restore button click (admin, deleted-projects mode only)
-    $("#projectsTable tbody").on("click", ".restore-btn", async function (e) {
+    $("#projectsTable tbody").on("click", ".restore-btn", function (e) {
       e.stopPropagation();
       const rowIndex = parseInt($(this).data("row"));
-      const row = self.data[rowIndex];
-      const result = await Swal.fire({
-        title: "שחזור פרויקט",
-        text: `האם לשחזר את הפרויקט "${row.ProjectName}"?`,
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonText: "שחזר",
-        cancelButtonText: "ביטול",
-      });
-      if (!result.isConfirmed) return;
-      try {
-        const payload = { ...self.buildProjectPayload(row), IsDeleted: false };
-        await ApiClient.updateProject(payload);
-        self.showToast("הפרויקט שוחזר בהצלחה");
-        await self.loadData();
-      } catch {
-        Swal.fire({ icon: "error", title: "שגיאה", text: "לא ניתן לשחזר את הפרויקט", confirmButtonText: "אישור" });
-      }
+      self.confirmRestore(rowIndex);
     });
 
     // Handle IsExecuted checkbox change
@@ -892,6 +875,7 @@ const App = {
     // Deleted projects toggle (admin only)
     $("#deletedProjectsFilter").on("change", () => {
       this.showingDeleted = $("#deletedProjectsFilter").is(":checked");
+      $("#projectsTable").toggleClass("deleted-mode", this.showingDeleted);
       this.loadData();
     });
 
@@ -1179,6 +1163,63 @@ const App = {
           confirmButtonText: "אישור",
         });
       });
+  },
+
+  /**
+   * Confirm restore project (shows modal, asks for reason)
+   */
+  confirmRestore(rowIndex) {
+    const project = this.data[rowIndex];
+    $("#restoreProjectName").text(project.ProjectName);
+    $("#restoreReasonText").val("");
+    $("#restoreConfirmModal").addClass("show");
+
+    $("#confirmRestoreBtn")
+      .off("click")
+      .on("click", () => {
+        const reason = $("#restoreReasonText").val().trim();
+        this.hideModal();
+        this.restoreProject(rowIndex, reason);
+      });
+
+    $("#cancelRestoreBtn")
+      .off("click")
+      .on("click", () => {
+        this.hideModal();
+      });
+  },
+
+  /**
+   * Restore project via API (IsDeleted: false), adds reason as comment
+   */
+  async restoreProject(rowIndex, reason) {
+    const row = this.data[rowIndex];
+
+    if (!reason) {
+      const now = new Date();
+      const pad = n => String(n).padStart(2, "0");
+      const dateStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      reason = `פרויקט זה שוחזר על ידי מנהל המערכת בתאריך ${dateStr}`;
+    }
+
+    const payload = { ...this.buildProjectPayload(row), IsDeleted: false };
+
+    startLoader("משחזר פרויקט...");
+    try {
+      await ApiClient.addComment({
+        ProjectId:   row.ProjectId,
+        CommentText: reason,
+        UserId:      Auth.getCurrentUser().userId,
+      });
+      await ApiClient.updateProject(payload);
+      stopLoader();
+      this.showToast("הפרויקט שוחזר בהצלחה");
+      await this.loadData();
+    } catch (err) {
+      stopLoader();
+      const msg = err.responseJSON?.message || "שגיאה בשחזור הפרויקט";
+      Swal.fire({ icon: "error", title: "שגיאה", text: msg, confirmButtonText: "אישור" });
+    }
   },
 
   /**
