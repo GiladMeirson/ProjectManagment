@@ -251,17 +251,71 @@ const UsersApp = {
     $("#usersTable tbody").on("click", ".delete-user-btn", async function () {
       const rowIndex = parseInt($(this).data("row"));
       const user = self.data[rowIndex];
+
+      // Fetch active projects assigned to this user
+      startLoader("בודק פרוייקטים משוייכים...");
+      let allProjects;
+      try {
+        allProjects = await ApiClient.getAllProjects();
+      } catch {
+        stopLoader();
+        Swal.fire({ icon: "error", title: "שגיאה", text: "לא ניתן לטעון פרוייקטים", confirmButtonText: "אישור" });
+        return;
+      }
+      stopLoader();
+
+      const assignedProjects = allProjects.filter(
+        p => !p.IsDeleted && p.AssignedTo === user.UserName
+      );
+      const count = assignedProjects.length;
+
+      // Block deletion if more than 5 projects are assigned
+      if (count > 5) {
+        Swal.fire({
+          icon: "error",
+          title: "לא ניתן למחוק משתמש",
+          text: "למשתמש זה יש מעל 5 פרוייקטים משוייכים, נא להקצות מחדש ולאחר מכן תוכל לבצע פעולה זו.",
+          confirmButtonText: "אישור",
+        });
+        return;
+      }
+
+      // Show confirmation — include warning text if there are assigned projects
+      const confirmText = count > 0
+        ? `שים לב- למשתמש זה יש ${count} פרוייקטים משוייכים, דאג להקצות אותם בהקדם.\n\nהאם למחוק את המשתמש "${user.UserName}"?`
+        : `האם למחוק את המשתמש "${user.UserName}"?`;
+
       const result = await Swal.fire({
         title: "מחיקת משתמש",
-        text: `האם למחוק את המשתמש "${user.UserName}"?`,
+        text: confirmText,
         icon: "warning",
         showCancelButton: true,
         confirmButtonText: "מחק",
         cancelButtonText: "ביטול",
       });
       if (!result.isConfirmed) return;
+
       startLoader("מוחק משתמש...");
       try {
+        // Unassign the user from all active projects before deleting
+        for (const project of assignedProjects) {
+          await ApiClient.updateProject({
+            ProjectId:        project.ProjectId,
+            ProjectNumber:    project.ProjectNumber,
+            ProjectName:      project.ProjectName,
+            Priority:         project.Priority,
+            AssignedTo:       null,
+            Status:           project.Status,
+            Chachi:           !!project.Chachi,
+            ChachiIsExecuted: !!project.ChachiIsExecuted,
+            Bezeq:            !!project.Bezeq,
+            BezeqIsExecuted:  !!project.BezeqIsExecuted,
+            Hot:              !!project.Hot,
+            HotIsExecuted:    !!project.HotIsExecuted,
+            LastUpdated:      Date.now(),
+            IsDeleted:        false,
+          });
+        }
         await ApiClient.updateUser({
           userId: user.UserId,
           userName: user.UserName,
