@@ -18,3 +18,15 @@ const YES_NO = Object.freeze({
   YES: "כן",
   NO: "לא",
 });
+
+const PRICE_OFFER_STATUS = Object.freeze({
+  WAITING:         "ממתין",
+  SENT:            "נשלח",
+  RECEIVED_SIGNED: "התקבל חתום",
+});
+
+const PRICE_OFFER_STATUS_BADGE_MAP = Object.freeze({
+  "ממתין":        "badge-status-waiting",
+  "נשלח":         "badge-status-working",
+  "התקבל חתום":   "badge-yes",
+});

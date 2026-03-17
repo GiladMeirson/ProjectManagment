@@ -30,6 +30,10 @@ const SELECT_COLORS = {
   'כן':                       { bg: '#d1fae5', fg: '#047857' },
   'לא':                       { bg: '#fef2f2', fg: '#dc2626' },
 
+  /* Price Offer Status */
+  'נשלח':                     { bg: '#dbeafe', fg: '#1d4ed8' },
+  'התקבל חתום':               { bg: '#d1fae5', fg: '#047857' },
+
   /* Employee modal */
   'עובד (2)':                 { bg: '#dbeafe', fg: '#1d4ed8' },
   'מנהל (1)':                 { bg: '#fce7f3', fg: '#db2777' },

@@ -159,6 +159,13 @@
 
             <div class="form-row single">
               <div class="form-group">
+                <label for="newPriceOfferStatus">סטטוס הצעת מחיר</label>
+                <select id="newPriceOfferStatus" class="edit-select"></select>
+              </div>
+            </div>
+
+            <div class="form-row single">
+              <div class="form-group">
                 <label for="newInitialComment">הערה ראשונית</label>
                 <input type="text" id="newInitialComment" />
               </div>
@@ -217,6 +224,13 @@
               <div class="form-group">
                 <label for="editStatus">סטטוס</label>
                 <select id="editStatus" class="edit-select"></select>
+              </div>
+            </div>
+
+            <div class="form-row single">
+              <div class="form-group">
+                <label for="editPriceOfferStatus">סטטוס הצעת מחיר</label>
+                <select id="editPriceOfferStatus" class="edit-select"></select>
               </div>
             </div>
 
@@ -413,6 +427,36 @@
             </div>
           </div>
           <button id="toggleAddCommentBtn" class="btn btn-primary">+ הוסף
+            הערה</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Price Offer Comments Modal -->
+    <div id="priceOfferCommentsModal" class="modal-overlay">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <div>
+            <h3 id="poCommentsModalTitle">הערות הצעת מחיר</h3>
+            <span id="poCommentsModalSubtitle" class="modal-subtitle"></span>
+          </div>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body comments-modal-body" id="poCommentsModalBody">
+          <!-- price offer comment cards injected by JS -->
+        </div>
+        <div class="modal-footer comments-modal-footer">
+          <div id="addPoCommentForm" class="add-comment-form hidden">
+            <textarea id="newPoCommentText" rows="3"
+              placeholder="כתוב הערה..."></textarea>
+            <div class="add-comment-actions">
+              <button id="submitPoCommentBtn" class="btn btn-subtle-success">שמור
+                הערה</button>
+              <button id="cancelPoCommentBtn"
+                class="btn btn-subtle-danger">ביטול</button>
+            </div>
+          </div>
+          <button id="toggleAddPoCommentBtn" class="btn btn-primary">+ הוסף
             הערה</button>
         </div>
       </div>

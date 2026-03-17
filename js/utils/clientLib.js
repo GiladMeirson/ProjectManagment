@@ -5,7 +5,7 @@
  */
 
 const ApiClient = {
-  BASE_URL: "https://projectmanagmentserver.onrender.com",
+  BASE_URL:"http://localhost:3000", //"https://projectmanagmentserver.onrender.com",
   // location.host === "" || location.host.includes("localhost")
   //   ? "http://localhost:3000"
   //   : "https://projectmanagmentserver.onrender.com",
@@ -131,6 +131,43 @@ const ApiClient = {
   updateComment(payload) {
     return $.ajax({
       url: `${this.BASE_URL}/projects/updateComment`,
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(payload),
+    });
+  },
+
+  getPriceOfferCommentsByProjectId(projectId) {
+    return $.ajax({
+      url: `${this.BASE_URL}/priceoffers/getCommentsByProjectId`,
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ projectId }),
+    });
+  },
+
+  /**
+   * Add a new price offer comment to a project
+   * @param {{ ProjectId: number, ProjectNumber: string, CommentText: string, UserId: number, UserName: string, UserRole: string }} payload
+   * @returns {jQuery.Deferred}
+   */
+  addPriceOfferComment(payload) {
+    return $.ajax({
+      url: `${this.BASE_URL}/priceoffers/addComment`,
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(payload),
+    });
+  },
+
+  /**
+   * Update or soft-delete an existing price offer comment
+   * @param {{ CommentId: number, ProjectId: number, ProjectNumber: string, CommentText: string, UserId: number, UserName: string, UserRole: string, IsDeleted: boolean }} payload
+   * @returns {jQuery.Deferred}
+   */
+  updatePriceOfferComment(payload) {
+    return $.ajax({
+      url: `${this.BASE_URL}/priceoffers/updateComment`,
       method: "POST",
       contentType: "application/json",
       data: JSON.stringify(payload),

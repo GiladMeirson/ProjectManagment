@@ -33,6 +33,7 @@ const App = {
   data: [],
   currentUser: null,
   _currentCommentsProjectId: null,
+  _currentPriceOfferCommentsProjectId: null,
   _cachedUserNames: [],
   showingDeleted: false,
   _pollingInterval: null,
@@ -114,6 +115,11 @@ const App = {
         LastCommentText: p.LastCommentText || "",
         LastCommentUserName: p.LastCommentUserName || "",
         LastCommentUserRole: p.LastCommentUserRole || "",
+        PriceOfferStatus: p.PriceOfferStatus || PRICE_OFFER_STATUS.WAITING,
+        LastPriceOfferCommentText:      p.LastPriceOfferCommentText || "",
+        LastPriceOfferCommentUserName:  p.LastPriceOfferCommentUserName || "",
+        LastPriceOfferCommentUserRole:  p.LastPriceOfferCommentUserRole || "",
+        LastPriceOfferCommentCreatedAt: p.LastPriceOfferCommentCreatedAt || null,
       }));
 
     // Sort: current user's projects first
@@ -146,6 +152,7 @@ const App = {
       BezeqIsExecuted:  !!row.BezeqIsExecuted,
       Hot:              row.Hot === YES_NO.YES,
       HotIsExecuted:    !!row.HotIsExecuted,
+      PriceOfferStatus: row.PriceOfferStatus || PRICE_OFFER_STATUS.WAITING,
       LastUpdated:      Date.now(),
       IsDeleted:        false,
     };
@@ -346,6 +353,39 @@ const App = {
             this.renderYesNoWithExecuted(data, row.HotIsExecuted, row),
         },
         {
+          data: "PriceOfferStatus",
+          title: "סטטוס הצעת מחיר",
+          className: "price-offer-status-cell centered-cell",
+          orderable: false,
+          searchable: false,
+          visible: Auth.isAdmin(),
+          render: (data) => {
+            const val = data || PRICE_OFFER_STATUS.WAITING;
+            const cls = PRICE_OFFER_STATUS_BADGE_MAP[val] ?? "badge-default";
+            return `<span class="badge ${cls}">${val}</span>`;
+          },
+        },
+        {
+          data: "LastPriceOfferCommentText",
+          title: "הערות הצעת מחיר",
+          orderable: false,
+          searchable: false,
+          visible: Auth.isAdmin(),
+          render: (data, _type, row) => {
+            if (!data) return `<span class="po-comment-cell badge badge-empty"
+              data-project-id="${row.ProjectId}"
+              data-project-name="${self.escapeHtml(row.ProjectName)}"
+              >--</span>`;
+            const isAdmin = row.LastPriceOfferCommentUserRole === "admin";
+            const displayName = isAdmin ? "מנהל מערכת" : self.escapeHtml(row.LastPriceOfferCommentUserName || "");
+            const truncated = data.length > 45 ? data.substring(0, 45) + "..." : data;
+            return `<span class="po-comment-cell"
+              data-project-id="${row.ProjectId}"
+              data-project-name="${self.escapeHtml(row.ProjectName)}"
+              ><strong class="comment-author">${displayName}:</strong> ${self.escapeHtml(truncated)}</span>`;
+          },
+        },
+        {
           data: null,
           title: "פעולות",
           orderable: false,
@@ -461,6 +501,13 @@ const App = {
       self.handleInlineSelectCellClick(this, "AssignedTo", [""].concat(self._cachedUserNames));
     });
 
+    // Admin inline select for PriceOfferStatus
+    $("#projectsTable tbody").on("click", "td.price-offer-status-cell", function () {
+      if (self.showingDeleted) return;
+      if (!Auth.isAdmin()) return;
+      self.handleInlineSelectCellClick(this, "PriceOfferStatus", Object.values(PRICE_OFFER_STATUS));
+    });
+
     // Handle restore button click (admin, deleted-projects mode only)
     $("#projectsTable tbody").on("click", ".restore-btn", function (e) {
       e.stopPropagation();
@@ -526,6 +573,13 @@ const App = {
       e.stopPropagation();
       const $el = $(this);
       self.openCommentsModal($el.data("project-id"), $el.data("project-name"));
+    });
+
+    // Handle price offer comment cell click — open price offer comments modal (admin only)
+    $("#projectsTable tbody").on("click", ".po-comment-cell", function (e) {
+      e.stopPropagation();
+      const $el = $(this);
+      self.openPriceOfferCommentsModal($el.data("project-id"), $el.data("project-name"));
     });
   },
 
@@ -880,6 +934,7 @@ const App = {
     });
 
     this.bindCommentsModalFooterEvents();
+    this.bindPriceOfferCommentsModalFooterEvents();
   },
 
   /**
@@ -922,6 +977,7 @@ const App = {
     $("#editBezeqIsExecuted").prop("checked", !!row.BezeqIsExecuted);
     $("#editHot").val(row.Hot || YES_NO.NO);
     $("#editHotIsExecuted").prop("checked", !!row.HotIsExecuted);
+    $("#editPriceOfferStatus").val(row.PriceOfferStatus || PRICE_OFFER_STATUS.WAITING);
 
     // Refresh custom-select UI after setting values
     $("#editProjectModal select[data-cs-enhanced]").each(function () {
@@ -965,6 +1021,13 @@ const App = {
         $select.append(`<option value="${val}">${val}</option>`);
       });
     });
+
+    // PriceOfferStatus dropdown
+    const $poStatus = $("#editPriceOfferStatus");
+    $poStatus.empty();
+    Object.values(PRICE_OFFER_STATUS).forEach((val) => {
+      $poStatus.append(`<option value="${val}">${val}</option>`);
+    });
   },
 
   /**
@@ -987,6 +1050,7 @@ const App = {
       BezeqIsExecuted:  $("#editBezeqIsExecuted").is(":checked"),
       Hot:              $("#editHot").val(),
       HotIsExecuted:    $("#editHotIsExecuted").is(":checked"),
+      PriceOfferStatus: $("#editPriceOfferStatus").val() || PRICE_OFFER_STATUS.WAITING,
     };
 
     if (!updated.ProjectNumber || !updated.ProjectName) {
@@ -1049,6 +1113,13 @@ const App = {
         $select.append(`<option value="${val}">${val}</option>`);
       });
     });
+
+    // PriceOfferStatus dropdown
+    const $newPoStatus = $("#newPriceOfferStatus");
+    $newPoStatus.empty();
+    Object.values(PRICE_OFFER_STATUS).forEach((val) => {
+      $newPoStatus.append(`<option value="${val}">${val}</option>`);
+    });
   },
 
   /**
@@ -1093,6 +1164,7 @@ const App = {
       Priority:         PRIORITY.NEW,
       AssignedTo:       assignedTo || null,
       Status:           STATUS.WAITING,
+      PriceOfferStatus: $("#newPriceOfferStatus").val() || PRICE_OFFER_STATUS.WAITING,
       Chachi:           chachi === YES_NO.YES,
       ChachiIsExecuted: false,
       Bezeq:            bezeq === YES_NO.YES,
@@ -1541,6 +1613,261 @@ const App = {
           $("#newCommentText").val("");
           $("#toggleAddCommentBtn").text("+ הוסף הערה");
           this.loadComments(projectId);
+          this.loadData();
+        })
+        .fail((err) => {
+          stopLoader();
+          this.showToast(err.responseJSON?.message || "שגיאה בהוספת ההערה", "error");
+        });
+    });
+  },
+
+  // ─── Price Offer Comments Modal ───────────────────────────────────────────
+
+  /**
+   * Open the price offer comments modal for a given project (admin only)
+   */
+  openPriceOfferCommentsModal(projectId, projectName) {
+    this._currentPriceOfferCommentsProjectId = projectId;
+    $("#poCommentsModalTitle").text(projectName || "הערות הצעת מחיר");
+    $("#poCommentsModalSubtitle").text("");
+    // Reset add form
+    $("#addPoCommentForm").addClass("hidden");
+    $("#newPoCommentText").val("");
+    $("#toggleAddPoCommentBtn").text("+ הוסף הערה");
+    $("#priceOfferCommentsModal").addClass("show");
+    this.loadPriceOfferComments(projectId);
+  },
+
+  /**
+   * Fetch all price offer comments for the given project and render them
+   */
+  loadPriceOfferComments(projectId) {
+    startLoader("טוען הערות...");
+    ApiClient.getPriceOfferCommentsByProjectId(projectId)
+      .done((comments) => {
+        const active = comments.filter((c) => !c.IsDeleted);
+        this.renderPriceOfferComments(active);
+      })
+      .fail(() => {
+        this.showToast("שגיאה בטעינת הערות", "error");
+        $("#poCommentsModalBody").html('<p class="comments-empty">לא ניתן לטעון הערות</p>');
+      })
+      .always(() => {
+        stopLoader();
+      });
+  },
+
+  /**
+   * Build and inject price offer comment cards into the modal body
+   */
+  renderPriceOfferComments(comments) {
+    const $body = $("#poCommentsModalBody");
+    const count = comments.length;
+    $("#poCommentsModalSubtitle").text(count === 0 ? "אין הערות" : `${count} הערות`);
+
+    if (count === 0) {
+      $body.html('<p class="comments-empty">אין הערות לפרויקט זה עדיין</p>');
+      return;
+    }
+
+    const html = comments.map((c) => {
+      const isAdmin = c.UserRole === "admin";
+      const authorName = isAdmin ? "מנהל מערכת" : this.escapeHtml(c.UserName || "");
+      const timeStr = this.formatCommentDate(c.CreatedAt);
+      // Price offer comments are admin-only — only admins can modify
+      const canModify = Auth.isAdmin();
+      const actionButtons = canModify
+        ? `<div class="comment-actions">
+            <button class="btn-icon edit-comment-btn" data-comment-id="${c.CommentId}" title="ערוך">✎</button>
+            <button class="btn-icon delete-comment-btn" data-comment-id="${c.CommentId}" title="מחק">🗑</button>
+          </div>`
+        : "";
+
+      const safeText = this.escapeHtml(c.CommentText);
+
+      return `<div class="comment-card"
+          data-comment-id="${c.CommentId}"
+          data-user-id="${c.UserId}"
+          data-comment-text="${safeText}">
+        <div class="comment-header">
+          <div class="comment-meta">
+            <span class="comment-author-name">${authorName}</span>
+            <span class="comment-time">${timeStr}</span>
+          </div>
+          ${actionButtons}
+        </div>
+        <div class="comment-body">
+          <p class="comment-text">${safeText}</p>
+          <textarea class="comment-edit-textarea hidden">${safeText}</textarea>
+          <div class="comment-edit-actions hidden">
+            <button class="save-edit-btn btn btn-subtle-success" data-comment-id="${c.CommentId}">שמור</button>
+            <button class="cancel-edit-btn btn btn-subtle-danger">ביטול</button>
+          </div>
+          <div class="comment-delete-confirm hidden">
+            <span>האם למחוק הערה זו?</span>
+            <button class="confirm-delete-btn btn btn-subtle-danger" data-comment-id="${c.CommentId}">מחק</button>
+            <button class="cancel-delete-btn btn btn-outline">ביטול</button>
+          </div>
+        </div>
+      </div>`;
+    }).join("");
+
+    $body.html(html);
+    this.bindPriceOfferCommentCardEvents();
+  },
+
+  /**
+   * Bind inline edit / delete interactions on price offer comment cards
+   */
+  bindPriceOfferCommentCardEvents() {
+    const $body = $("#poCommentsModalBody");
+    $body.off("click");
+
+    $body.on("click", ".edit-comment-btn", function () {
+      const $card = $(this).closest(".comment-card");
+      $card.find(".comment-text").addClass("hidden");
+      $card.find(".comment-edit-textarea").removeClass("hidden").focus();
+      $card.find(".comment-edit-actions").removeClass("hidden");
+      $card.find(".comment-actions").addClass("hidden");
+      $card.find(".comment-delete-confirm").addClass("hidden");
+    });
+
+    $body.on("click", ".cancel-edit-btn", function () {
+      const $card = $(this).closest(".comment-card");
+      $card.find(".comment-text").removeClass("hidden");
+      $card.find(".comment-edit-textarea").addClass("hidden");
+      $card.find(".comment-edit-actions").addClass("hidden");
+      $card.find(".comment-actions").removeClass("hidden");
+    });
+
+    $body.on("click", ".save-edit-btn", (e) => {
+      const $btn = $(e.currentTarget);
+      const commentId = $btn.data("comment-id");
+      const $card = $btn.closest(".comment-card");
+      const newText = $card.find(".comment-edit-textarea").val().trim();
+      if (!newText) return;
+
+      const projectId = this._currentPriceOfferCommentsProjectId;
+      const projectRow = this.data.find((p) => p.ProjectId === projectId);
+
+      startLoader("שומר...");
+      ApiClient.updatePriceOfferComment({
+        CommentId:     commentId,
+        ProjectId:     projectId,
+        ProjectNumber: projectRow?.ProjectNumber || "",
+        CommentText:   newText,
+        UserId:        this.currentUser.userId,
+        UserName:      this.currentUser.username,
+        UserRole:      this.currentUser.role,
+        IsDeleted:     false,
+      })
+        .done(() => {
+          stopLoader();
+          this.showToast("ההערה עודכנה");
+          this.loadPriceOfferComments(projectId);
+          this.loadData();
+        })
+        .fail((err) => {
+          stopLoader();
+          this.showToast(err.responseJSON?.message || "שגיאה בעדכון ההערה", "error");
+        });
+    });
+
+    $body.on("click", ".delete-comment-btn", function () {
+      const $card = $(this).closest(".comment-card");
+      $card.find(".comment-delete-confirm").removeClass("hidden");
+      $card.find(".comment-actions").addClass("hidden");
+      $card.find(".comment-text").addClass("hidden");
+    });
+
+    $body.on("click", ".cancel-delete-btn", function () {
+      const $card = $(this).closest(".comment-card");
+      $card.find(".comment-delete-confirm").addClass("hidden");
+      $card.find(".comment-actions").removeClass("hidden");
+      $card.find(".comment-text").removeClass("hidden");
+    });
+
+    $body.on("click", ".confirm-delete-btn", (e) => {
+      const $btn = $(e.currentTarget);
+      const commentId = $btn.data("comment-id");
+      const $card = $btn.closest(".comment-card");
+      const commentText = $card.data("comment-text") || "";
+      const userId = $card.data("user-id");
+
+      const projectId = this._currentPriceOfferCommentsProjectId;
+      const projectRow = this.data.find((p) => p.ProjectId === projectId);
+
+      startLoader("מוחק...");
+      ApiClient.updatePriceOfferComment({
+        CommentId:     commentId,
+        ProjectId:     projectId,
+        ProjectNumber: projectRow?.ProjectNumber || "",
+        CommentText:   commentText,
+        UserId:        userId,
+        UserName:      this.currentUser.username,
+        UserRole:      this.currentUser.role,
+        IsDeleted:     true,
+      })
+        .done(() => {
+          stopLoader();
+          this.showToast("ההערה נמחקה");
+          this.loadPriceOfferComments(projectId);
+          this.loadData();
+        })
+        .fail((err) => {
+          stopLoader();
+          this.showToast(err.responseJSON?.message || "שגיאה במחיקת ההערה", "error");
+        });
+    });
+  },
+
+  /**
+   * Bind add-comment form events in the price offer comments modal footer
+   */
+  bindPriceOfferCommentsModalFooterEvents() {
+    $("#toggleAddPoCommentBtn").on("click", () => {
+      const $form = $("#addPoCommentForm");
+      if ($form.hasClass("hidden")) {
+        $form.removeClass("hidden");
+        $("#newPoCommentText").focus();
+        $("#toggleAddPoCommentBtn").text("✕ סגור");
+      } else {
+        $form.addClass("hidden");
+        $("#newPoCommentText").val("");
+        $("#toggleAddPoCommentBtn").text("+ הוסף הערה");
+      }
+    });
+
+    $("#cancelPoCommentBtn").on("click", () => {
+      $("#addPoCommentForm").addClass("hidden");
+      $("#newPoCommentText").val("");
+      $("#toggleAddPoCommentBtn").text("+ הוסף הערה");
+    });
+
+    $("#submitPoCommentBtn").on("click", () => {
+      const text = $("#newPoCommentText").val().trim();
+      if (!text) return;
+      const projectId = this._currentPriceOfferCommentsProjectId;
+      const projectRow = this.data.find((p) => p.ProjectId === projectId);
+      const user = Auth.getCurrentUser();
+
+      startLoader("מוסיף הערה...");
+      ApiClient.addPriceOfferComment({
+        ProjectId:     projectId,
+        ProjectNumber: projectRow?.ProjectNumber || "",
+        CommentText:   text,
+        UserId:        user.userId,
+        UserName:      user.username,
+        UserRole:      user.role,
+      })
+        .done(() => {
+          stopLoader();
+          this.showToast("ההערה נוספה");
+          $("#addPoCommentForm").addClass("hidden");
+          $("#newPoCommentText").val("");
+          $("#toggleAddPoCommentBtn").text("+ הוסף הערה");
+          this.loadPriceOfferComments(projectId);
           this.loadData();
         })
         .fail((err) => {
