@@ -94,6 +94,12 @@
   border: 1px solid var(--gray-200);
 }
 
+.assignedto-cell .badge-empty {
+  background: #fef2f2;
+  color: #ef4444;
+  border-color: #ff1717;
+}
+
 /* ---- Inline cell-edit indicators ---- */
 .editable-cell,
 .status-cell {

@@ -217,6 +217,12 @@
   border-color: #2a3045;
 }
 
+[data-theme="dark"] .assignedto-cell .badge-empty {
+  background: #2d1515;
+  color: #f87171;
+  border-color: #5a1e1e;
+}
+
 /* Executed label */
 [data-theme="dark"] .executed-label {
   background: #1e2436;
