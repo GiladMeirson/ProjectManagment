@@ -34,45 +34,45 @@
 
 /* ---- Status ---- */
 .badge-status-waiting {
-  background: #fef3c7;
-  color: #b45309;
-  border: 1px solid #fde68a;
+  background: #dfe7ff;
+  color: #000000;
+  border: 1px solid #b8cdff;
 }
 
 .badge-status-working {
-  background: #dbeafe;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
+  background: #ffd6d6;
+  color: #000000;
+  border: 1px solid #ffb0b0;
 }
 
 .badge-status-review {
-  background: #e0e7ff;
-  color: #4338ca;
-  border: 1px solid #c7d2fe;
+  background: #ffe7c2;
+  color: #000000;
+  border: 1px solid #ffd499;
 }
 
 .badge-status-updated {
-  background: #d1fae5;
-  color: #047857;
-  border: 1px solid #a7f3d0;
+  background: #fff3bf;
+  color: #000000;
+  border: 1px solid #ffe98a;
 }
 
 .badge-status-tender {
-  background: #f3e8ff;
-  color: #7c3aed;
-  border: 1px solid #e9d5ff;
+  background: #f1f7c6;
+  color: #000000;
+  border: 1px solid #deeea0;
 }
 
 .badge-status-execution {
-  background: #ccfbf1;
-  color: #0d9488;
-  border: 1px solid #99f6e4;
+  background: #d6f5d6;
+  color: #000000;
+  border: 1px solid #b0e8b0;
 }
 
 .badge-status-special {
-  background: #fce7f3;
-  color: #db2777;
-  border: 1px solid #fbcfe8;
+  background: #dfe7ff;
+  color: #000000;
+  border: 1px solid #b8cdff;
 }
 
 /* ---- Yes / No / Empty ---- */
