@@ -321,13 +321,14 @@ const App = {
             if (!data) return `<span class="comment-cell badge badge-empty"
               data-project-id="${row.ProjectId}"
               data-project-name="${this.escapeHtml(row.ProjectName)}"
+              data-assigned-to="${this.escapeHtml(row.AssignedTo || '')}"
               >--</span>`;
-            const isAdmin = row.LastCommentUserRole === "admin";
-            const displayName = isAdmin ? "מנהל מערכת" : this.escapeHtml(row.LastCommentUserName || "");
+            const displayName = this.escapeHtml(row.LastCommentUserName || "");
             const truncated = data.length > 45 ? data.substring(0, 45) + "..." : data;
             return `<span class="comment-cell"
               data-project-id="${row.ProjectId}"
               data-project-name="${this.escapeHtml(row.ProjectName)}"
+              data-assigned-to="${this.escapeHtml(row.AssignedTo || '')}"
               ><strong class="comment-author">${displayName}:</strong> ${this.escapeHtml(truncated)}</span>`;
           },
         },
@@ -376,8 +377,7 @@ const App = {
               data-project-id="${row.ProjectId}"
               data-project-name="${self.escapeHtml(row.ProjectName)}"
               >--</span>`;
-            const isAdmin = row.LastPriceOfferCommentUserRole === "admin";
-            const displayName = isAdmin ? "מנהל מערכת" : self.escapeHtml(row.LastPriceOfferCommentUserName || "");
+            const displayName = self.escapeHtml(row.LastPriceOfferCommentUserName || "");
             const truncated = data.length > 45 ? data.substring(0, 45) + "..." : data;
             return `<span class="po-comment-cell"
               data-project-id="${row.ProjectId}"
@@ -388,6 +388,7 @@ const App = {
         {
           data: null,
           title: "פעולות",
+          visible: Auth.isAdmin(),
           orderable: false,
           searchable: false,
           className: "text-center",
@@ -440,7 +441,7 @@ const App = {
       buttons: [
         {
           extend: "excelHtml5",
-          text: "ייצוא לאקסל",
+          text: '<img src="../assets/icons/excel_icon.png" alt="ייצוא לאקסל" title="ייצוא לאקסל" style="height:22px;vertical-align:middle;">',
           title: "פרויקטים",
           className: "dt-button-excel",
           exportOptions: {
@@ -572,7 +573,7 @@ const App = {
     $("#projectsTable tbody").on("click", ".comment-cell", function (e) {
       e.stopPropagation();
       const $el = $(this);
-      self.openCommentsModal($el.data("project-id"), $el.data("project-name"));
+      self.openCommentsModal($el.data("project-id"), $el.data("project-name"), $el.data("assigned-to"));
     });
 
     // Handle price offer comment cell click — open price offer comments modal (admin only)
@@ -1364,6 +1365,8 @@ const App = {
    */
   canModifyComment(comment) {
     if (Auth.isAdmin()) return true;
+    const isMyProject = this._currentCommentsProjectAssignedTo === this.currentUser.username;
+    if (!isMyProject) return false;
     return Number(comment.UserId) === Number(this.currentUser.userId);
   },
 
@@ -1381,14 +1384,18 @@ const App = {
   /**
    * Open the comments modal for a given project
    */
-  openCommentsModal(projectId, projectName) {
+  openCommentsModal(projectId, projectName, assignedTo) {
     this._currentCommentsProjectId = projectId;
+    this._currentCommentsProjectAssignedTo = assignedTo || "";
     $("#commentsModalTitle").text(projectName || "הערות פרויקט");
     $("#commentsModalSubtitle").text("");
     // Reset add form
     $("#addCommentForm").addClass("hidden");
     $("#newCommentText").val("");
     $("#toggleAddCommentBtn").text("+ הוסף הערה");
+    // Show "add comment" button only if admin or project is assigned to current user
+    const canAdd = Auth.isAdmin() || this._currentCommentsProjectAssignedTo === this.currentUser.username;
+    $("#toggleAddCommentBtn").toggleClass("hidden", !canAdd);
     $("#commentsModal").addClass("show");
     this.loadComments(projectId);
   },
@@ -1427,8 +1434,7 @@ const App = {
     }
 
     const html = comments.map((c) => {
-      const isAdmin = c.UserRole === "admin";
-      const authorName = isAdmin ? "מנהל מערכת" : this.escapeHtml(c.UserName || "");
+      const authorName = this.escapeHtml(c.UserName || "");
       const timeStr = this.formatCommentDate(c.CreatedAt);
       const canModify = this.canModifyComment(c);
       const actionButtons = canModify
@@ -1672,8 +1678,7 @@ const App = {
     }
 
     const html = comments.map((c) => {
-      const isAdmin = c.UserRole === "admin";
-      const authorName = isAdmin ? "מנהל מערכת" : this.escapeHtml(c.UserName || "");
+      const authorName = this.escapeHtml(c.UserName || "");
       const timeStr = this.formatCommentDate(c.CreatedAt);
       // Price offer comments are admin-only — only admins can modify
       const canModify = Auth.isAdmin();

@@ -94,8 +94,12 @@
   border: 1px solid var(--gray-200);
 }
 
+.assignedto-cell {
+  min-width: 130px;
+}
+
 .assignedto-cell .badge-empty {
-  background: #fef2f2;
+  background: #ffb5b5;
   color: #ef4444;
   border-color: #ff1717;
 }

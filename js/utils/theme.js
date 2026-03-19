@@ -33,4 +33,18 @@
   if (saved === "dark") {
     document.documentElement.setAttribute("data-theme", "dark");
   }
+
+  // Wire up the pill toggle button once the DOM is ready
+  document.addEventListener("DOMContentLoaded", function () {
+    const btn = document.getElementById("themeToggleBtn");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      if (isDark) {
+        window.lightmode();
+      } else {
+        window.darkmode();
+      }
+    });
+  });
 })();
