@@ -442,7 +442,7 @@ const App = {
           title: "פרויקטים",
           className: "dt-button-excel",
           exportOptions: {
-            columns: ":not(:last-child)",
+            columns: Auth.isAdmin() ? ":not(:last-child)" : ":visible",
             format: {
               body: function (data, _row, _column, _node) {
                 // Strip HTML tags for export

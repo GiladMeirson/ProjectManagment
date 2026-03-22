@@ -272,6 +272,10 @@
   color: #d1d5db;
 }
 
+[data-theme="dark"] .comment-author {
+  color: #e5e7eb;
+}
+
 [data-theme="dark"] .btn-icon {
   color: #9ca3af;
 }
