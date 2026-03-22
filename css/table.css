@@ -71,6 +71,7 @@ table.dataTable thead .sorting_asc,
 table.dataTable thead .sorting_desc {
   background-position: right center !important;
   padding-right: 30px !important;
+  cursor: pointer;
 }
 
 table.dataTable thead .sorting:after,

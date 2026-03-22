@@ -9,6 +9,7 @@ const ADMIN_ACTIONS = [
     label: "הוסף עובד חדש",
     action: () => {
       $("#adminMenuModal").removeClass("show");
+      $("#addEmployeeForm")[0].reset();
       $("#addEmployeeModal").addClass("show");
     },
   },
@@ -357,8 +358,6 @@ const App = {
           data: "PriceOfferStatus",
           title: "סטטוס הצעת מחיר",
           className: "price-offer-status-cell centered-cell",
-          orderable: false,
-          searchable: false,
           visible: Auth.isAdmin(),
           render: (data) => {
             const val = data || PRICE_OFFER_STATUS.WAITING;
@@ -369,8 +368,6 @@ const App = {
         {
           data: "LastPriceOfferCommentText",
           title: "הערות הצעת מחיר",
-          orderable: false,
-          searchable: false,
           visible: Auth.isAdmin(),
           render: (data, _type, row) => {
             if (!data) return `<span class="po-comment-cell badge badge-empty"

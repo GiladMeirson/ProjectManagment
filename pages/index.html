@@ -50,7 +50,7 @@
             </svg>
           </div>
           <h1>ניהול פרויקטים</h1>
-          <span style="font-size: 12px; margin-top: 4px;">1.3.18</span>
+          <span style="font-size: 12px; margin-top: 4px;">1.3.19</span>
         </div>
         <div class="header-left">
           <div class="user-info">
@@ -333,22 +333,22 @@
           <h3>הוספת עובד חדש</h3>
           <button class="modal-close">&times;</button>
         </div>
-        <form id="addEmployeeForm">
+        <form id="addEmployeeForm" autocomplete="off">
           <div class="modal-body">
             <div class="form-row">
               <div class="form-group">
                 <label for="newEmpUserName">שם משתמש *</label>
-                <input type="text" id="newEmpUserName" required />
+                <input type="text" id="newEmpUserName" autocomplete="off" required />
               </div>
               <div class="form-group">
                 <label for="newEmpEmail">אימייל *</label>
-                <input type="email" id="newEmpEmail" required />
+                <input type="email" id="newEmpEmail" autocomplete="off" required />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="newEmpPassword">סיסמה *</label>
-                <input type="password" id="newEmpPassword" required />
+                <input type="password" id="newEmpPassword" autocomplete="new-password" required />
               </div>
             </div>
             <div class="form-row">
