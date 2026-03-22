@@ -324,17 +324,19 @@
 }
 
 /* ---- Table: comment cell clickable ---- */
-.comment-cell {
+.comment-cell,
+.po-comment-cell {
   cursor: pointer;
   display: inline-block;
-  max-width: 280px;
+  max-width: 160px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align: middle;
 }
 
-.comment-cell:hover {
+.comment-cell:hover,
+.po-comment-cell:hover {
   color: #0f766e;
   text-decoration: underline;
 }

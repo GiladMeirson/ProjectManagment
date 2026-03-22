@@ -324,7 +324,7 @@ const App = {
               data-assigned-to="${this.escapeHtml(row.AssignedTo || '')}"
               >--</span>`;
             const displayName = this.escapeHtml(row.LastCommentUserName || "");
-            const truncated = data.length > 45 ? data.substring(0, 45) + "..." : data;
+            const truncated = data.length > 25 ? data.substring(0, 25) + "..." : data;
             return `<span class="comment-cell"
               data-project-id="${row.ProjectId}"
               data-project-name="${this.escapeHtml(row.ProjectName)}"
@@ -378,7 +378,7 @@ const App = {
               data-project-name="${self.escapeHtml(row.ProjectName)}"
               >--</span>`;
             const displayName = self.escapeHtml(row.LastPriceOfferCommentUserName || "");
-            const truncated = data.length > 45 ? data.substring(0, 45) + "..." : data;
+            const truncated = data.length > 25 ? data.substring(0, 25) + "..." : data;
             return `<span class="po-comment-cell"
               data-project-id="${row.ProjectId}"
               data-project-name="${self.escapeHtml(row.ProjectName)}"
@@ -473,8 +473,8 @@ const App = {
     // Handle cell click for YES/NO inline editing (admin only — Chachi/Bezeq/Hot columns)
     $("#projectsTable tbody").on("click", "td.editable-cell", function (e) {
       if (self.showingDeleted) return;
-      // Don't open select when clicking on the checkbox itself
-      if ($(e.target).hasClass("executed-check")) return;
+      // Don't open select when clicking on the checkbox label area
+      if ($(e.target).closest(".executed-label").length) return;
       self.handleCellClick(this);
     });
 

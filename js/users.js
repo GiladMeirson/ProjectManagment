@@ -43,7 +43,7 @@ const UsersApp = {
     try {
       const users = await ApiClient.getAllUsers();
       this.data = users.filter((u) =>
-        this.showingDeleted ? u.IsDeleted : !u.IsDeleted
+        this.showingDeleted ? u.IsDeleted : !u.IsDeleted,
       );
       $("#addUserBtn").toggleClass("hidden", this.showingDeleted);
 
@@ -75,7 +75,8 @@ const UsersApp = {
     const userName = document.getElementById("userName");
     const userRole = document.getElementById("userRole");
 
-    if (userAvatar) userAvatar.textContent = this.currentUser.username.charAt(0);
+    if (userAvatar)
+      userAvatar.textContent = this.currentUser.username.charAt(0);
     if (userName) userName.textContent = this.currentUser.username;
     if (userRole) userRole.textContent = "מנהל מערכת";
   },
@@ -115,7 +116,9 @@ const UsersApp = {
   renderRoleBadge(role) {
     if (!role) return '<span class="badge badge-empty">--</span>';
     const isAdmin = role === "admin";
-    const badgeClass = isAdmin ? "badge-priority-urgent" : "badge-status-working";
+    const badgeClass = isAdmin
+      ? "badge-priority-urgent"
+      : "badge-status-working";
     const label = isAdmin ? "מנהל" : "עובד";
     return `<span class="badge ${badgeClass}">${label}</span>`;
   },
@@ -144,7 +147,8 @@ const UsersApp = {
         {
           data: "UserName",
           title: "שם משתמש",
-          render: (data) => `<span class="assigned-user">${this.escapeHtml(data)}</span>`,
+          render: (data) =>
+            `<span class="assigned-user">${this.escapeHtml(data)}</span>`,
         },
         {
           data: "Email",
@@ -164,7 +168,8 @@ const UsersApp = {
         {
           data: "LastLogin",
           title: "התחברות אחרונה",
-          render: (data) => `<span class="comment-time">${this.formatDate(data)}</span>`,
+          render: (data) =>
+            `<span class="comment-time">${this.formatDate(data)}</span>`,
         },
         {
           data: null,
@@ -259,13 +264,18 @@ const UsersApp = {
         allProjects = await ApiClient.getAllProjects();
       } catch {
         stopLoader();
-        Swal.fire({ icon: "error", title: "שגיאה", text: "לא ניתן לטעון פרוייקטים", confirmButtonText: "אישור" });
+        Swal.fire({
+          icon: "error",
+          title: "שגיאה",
+          text: "לא ניתן לטעון פרוייקטים",
+          confirmButtonText: "אישור",
+        });
         return;
       }
       stopLoader();
 
       const assignedProjects = allProjects.filter(
-        p => !p.IsDeleted && p.AssignedTo === user.UserName
+        (p) => !p.IsDeleted && p.AssignedTo === user.UserName,
       );
       const count = assignedProjects.length;
 
@@ -281,9 +291,10 @@ const UsersApp = {
       }
 
       // Show confirmation — include warning text if there are assigned projects
-      const confirmText = count > 0
-        ? `שים לב- למשתמש זה יש ${count} פרוייקטים משוייכים, דאג להקצות אותם בהקדם.\n\nהאם למחוק את המשתמש "${user.UserName}"?`
-        : `האם למחוק את המשתמש "${user.UserName}"?`;
+      const confirmText =
+        count > 0
+          ? `שים לב- למשתמש זה יש ${count} פרוייקטים משוייכים, דאג להקצות אותם בהקדם.\n\nהאם למחוק את המשתמש "${user.UserName}"?`
+          : `האם למחוק את המשתמש "${user.UserName}"?`;
 
       const result = await Swal.fire({
         title: "מחיקת משתמש",
@@ -300,20 +311,21 @@ const UsersApp = {
         // Unassign the user from all active projects before deleting
         for (const project of assignedProjects) {
           await ApiClient.updateProject({
-            ProjectId:        project.ProjectId,
-            ProjectNumber:    project.ProjectNumber,
-            ProjectName:      project.ProjectName,
-            Priority:         project.Priority,
-            AssignedTo:       null,
-            Status:           project.Status,
-            Chachi:           !!project.Chachi,
+            ProjectId: project.ProjectId,
+            ProjectNumber: project.ProjectNumber,
+            ProjectName: project.ProjectName,
+            Priority: project.Priority,
+            AssignedTo: null,
+            Status: project.Status,
+            Chachi: !!project.Chachi,
             ChachiIsExecuted: !!project.ChachiIsExecuted,
-            Bezeq:            !!project.Bezeq,
-            BezeqIsExecuted:  !!project.BezeqIsExecuted,
-            Hot:              !!project.Hot,
-            HotIsExecuted:    !!project.HotIsExecuted,
-            LastUpdated:      Date.now(),
-            IsDeleted:        false,
+            Bezeq: !!project.Bezeq,
+            BezeqIsExecuted: !!project.BezeqIsExecuted,
+            Hot: !!project.Hot,
+            HotIsExecuted: !!project.HotIsExecuted,
+            PriceOfferStatus: project.PriceOfferStatus || PRICE_OFFER_STATUS.WAITING,
+            LastUpdated: Date.now(),
+            IsDeleted: false,
           });
         }
         await ApiClient.updateUser({
@@ -330,7 +342,12 @@ const UsersApp = {
         await self.loadData();
       } catch {
         stopLoader();
-        Swal.fire({ icon: "error", title: "שגיאה", text: "לא ניתן למחוק את המשתמש", confirmButtonText: "אישור" });
+        Swal.fire({
+          icon: "error",
+          title: "שגיאה",
+          text: "לא ניתן למחוק את המשתמש",
+          confirmButtonText: "אישור",
+        });
       }
     });
 
@@ -363,7 +380,12 @@ const UsersApp = {
         await self.loadData();
       } catch {
         stopLoader();
-        Swal.fire({ icon: "error", title: "שגיאה", text: "לא ניתן לשחזר את המשתמש", confirmButtonText: "אישור" });
+        Swal.fire({
+          icon: "error",
+          title: "שגיאה",
+          text: "לא ניתן לשחזר את המשתמש",
+          confirmButtonText: "אישור",
+        });
       }
     });
   },
@@ -455,11 +477,11 @@ const UsersApp = {
    * Add a new user via API
    */
   addUser() {
-    const userName    = $("#newUserName").val().trim();
-    const email       = $("#newUserEmail").val().trim();
-    const password    = $("#newUserPassword").val();
+    const userName = $("#newUserName").val().trim();
+    const email = $("#newUserEmail").val().trim();
+    const password = $("#newUserPassword").val();
     const permissions = $("#newUserPermissions").val();
-    const role        = $("#newUserRole").val();
+    const role = $("#newUserRole").val();
 
     if (!userName || !email || !password) {
       Swal.fire({
@@ -505,13 +527,13 @@ const UsersApp = {
    * Save edited user via API
    */
   async saveEditUser() {
-    const rowIndex    = $("#editUserModal").data("row-index");
-    const existing    = this.data[rowIndex];
-    const userName    = $("#editUserName").val().trim();
-    const email       = $("#editUserEmail").val().trim();
-    const password    = $("#editUserPassword").val();
+    const rowIndex = $("#editUserModal").data("row-index");
+    const existing = this.data[rowIndex];
+    const userName = $("#editUserName").val().trim();
+    const email = $("#editUserEmail").val().trim();
+    const password = $("#editUserPassword").val();
     const permissions = parseInt($("#editUserPermissions").val(), 10);
-    const role        = $("#editUserRole").val();
+    const role = $("#editUserRole").val();
 
     if (!userName || !email) {
       Swal.fire({
@@ -538,12 +560,13 @@ const UsersApp = {
     }
 
     const payload = {
-      userId:      existing.UserId,
+      userId: existing.UserId,
       userName,
       email,
-      password:    resolvedPassword,
+      password: resolvedPassword,
       permissions,
-      Role:        role,
+      Role: role,
+      IsDeleted: 0,
     };
 
     startLoader("שומר שינויים...");
@@ -552,9 +575,9 @@ const UsersApp = {
       // Update local data
       this.data[rowIndex] = {
         ...existing,
-        UserName:    userName,
-        Email:       email,
-        Role:        role,
+        UserName: userName,
+        Email: email,
+        Role: role,
         Permissions: permissions,
       };
 
