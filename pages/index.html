@@ -28,6 +28,7 @@
     <link rel="stylesheet" href="../css/table.css" />
     <link rel="stylesheet" href="../css/utilities.css" />
     <link rel="stylesheet" href="../css/darkmode.css" />
+    <link rel="stylesheet" href="../css/mentions.css" />
   </head>
   <body>
     <div class="app-container">
@@ -50,7 +51,7 @@
             </svg>
           </div>
           <h1>ניהול פרויקטים</h1>
-          <span style="font-size: 12px; margin-top: 4px;">1.3.20</span>
+          <span style="font-size: 12px; margin-top: 4px;">1.4.21</span>
         </div>
         <div class="header-left">
           <div class="user-info">
@@ -109,6 +110,10 @@
                 <label class="filter-checkbox-label">
                   <input type="checkbox" id="myProjectsFilter" />
                   <span>הצג פרויקטים שלי בלבד</span>
+                </label>
+                <label class="filter-checkbox-label">
+                  <input type="checkbox" id="mentionedFilter" />
+                  <span>הראה לי פרוייקטים שהוזכרתי</span>
                 </label>
 
               </div>
@@ -487,6 +492,9 @@
         </div>
       </div>
     </div>
+
+    <!-- Mention autocomplete dropdown — singleton, fixed-positioned by JS -->
+    <div id="mentionDropdown" class="mention-dropdown hidden" role="listbox"></div>
 
     <!-- Scripts -->
     <!-- jQuery -->

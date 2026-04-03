@@ -9,7 +9,7 @@ const STATUS = Object.freeze({
 });
 
 const PRIORITY = Object.freeze({
-  ON_HOLD: "בהמתנה",
+  ON_HOLD: "--",
   URGENT: "דחוף",
   NEW: "חדש",
 });

@@ -22,7 +22,7 @@ const SELECT_COLORS = {
   'מיוחד':                    {  bg: '#dfe7ff', fg: '#000000' },
 
   /* Priority */
-  'בהמתנה':                   { bg: '#f3f4f6', fg: '#4b5563' },
+  '--':                        { bg: '#f3f4f6', fg: '#4b5563' },
   'דחוף':                     { bg: '#fef2f2', fg: '#dc2626' },
   'חדש':                      { bg: '#f0fdf4', fg: '#16a34a' },
 

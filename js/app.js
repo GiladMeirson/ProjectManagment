@@ -38,6 +38,12 @@ const App = {
   _cachedUserNames: [],
   showingDeleted: false,
   _pollingInterval: null,
+  _mention: {
+    activeTextarea: null,
+    atIndex: -1,
+    activeIndex: -1,
+    items: [],
+  },
 
   /**
    * Initialize the application
@@ -187,28 +193,18 @@ const App = {
       const rawProjects = await ApiClient.getAllProjects(params);
       const fetched = this.transformProjects(rawProjects);
 
-      const currentIds = new Set(this.data.map(p => p.ProjectId));
-      const fetchedIds  = new Set(fetched.map(p => p.ProjectId));
-
-      const added      = fetched.filter(p => !currentIds.has(p.ProjectId));
-      const removedIds = [...currentIds].filter(id => !fetchedIds.has(id));
-
-      if (added.length === 0 && removedIds.length === 0) return;
-
-      added.forEach(project => {
-        this.data.push(project);
-        this.table.row.add(project);
-      });
-
-      removedIds.forEach(id => {
-        const idx = this.data.findIndex(p => p.ProjectId === id);
-        if (idx !== -1) this.data.splice(idx, 1);
-        this.table.rows().every(function() {
-          if (this.data().ProjectId === id) this.remove();
+      const currentMap = new Map(this.data.map(p => [p.ProjectId, p]));
+      const hasChanges =
+        fetched.length !== this.data.length ||
+        fetched.some(fp => {
+          const existing = currentMap.get(fp.ProjectId);
+          return !existing || JSON.stringify(existing) !== JSON.stringify(fp);
         });
-      });
 
-      this.table.draw(false);
+      if (!hasChanges) return;
+
+      this.data = fetched;
+      this.table.clear().rows.add(this.data).draw(false);
       this.updateProjectCount();
       this.showToast("הטבלה עודכנה אוטומטית", "info", 2000);
     } catch (_) {
@@ -238,7 +234,7 @@ const App = {
   updateProjectCount() {
     const el = document.getElementById("projectCount");
     if (!el) return;
-    if (this.table && $("#myProjectsFilter").is(":checked")) {
+    if (this.table && ($("#myProjectsFilter").is(":checked") || $("#mentionedFilter").is(":checked"))) {
       el.textContent = this.table.rows({ filter: "applied" }).count();
     } else {
       el.textContent = this.data.length;
@@ -325,12 +321,12 @@ const App = {
               data-assigned-to="${this.escapeHtml(row.AssignedTo || '')}"
               >--</span>`;
             const displayName = this.escapeHtml(row.LastCommentUserName || "");
-            const truncated = data.length > 25 ? data.substring(0, 25) + "..." : data;
+            const renderedPreview = this._renderCommentPreview(data, 25);
             return `<span class="comment-cell"
               data-project-id="${row.ProjectId}"
               data-project-name="${this.escapeHtml(row.ProjectName)}"
               data-assigned-to="${this.escapeHtml(row.AssignedTo || '')}"
-              ><strong class="comment-author">${displayName}:</strong> ${this.escapeHtml(truncated)}</span>`;
+              ><strong class="comment-author">${displayName}:</strong> ${renderedPreview}</span>`;
           },
         },
         {
@@ -465,6 +461,14 @@ const App = {
       if (settings.nTable.id !== "projectsTable") return true;
       if (!$("#myProjectsFilter").is(":checked")) return true;
       return rowData.AssignedTo === self.currentUser.username;
+    });
+
+    // Register custom search for "mentioned me" filter
+    $.fn.dataTable.ext.search.push((settings, _data, _dataIndex, rowData) => {
+      if (settings.nTable.id !== "projectsTable") return true;
+      if (!$("#mentionedFilter").is(":checked")) return true;
+      const marker = `[[${self.currentUser.username}]]`;
+      return (rowData.LastCommentText || "").includes(marker);
     });
 
     // Handle cell click for YES/NO inline editing (admin only — Chachi/Bezeq/Hot columns)
@@ -798,7 +802,7 @@ const App = {
    * Render priority badge
    */
   renderPriorityBadge(priority) {
-    if (!priority) return '<span class="badge badge-empty">--</span>';
+    if (!priority || priority === PRIORITY.ON_HOLD) return '<span class="badge badge-empty">--</span>';
 
     let badgeClass = "badge-priority-hold";
     if (priority === PRIORITY.URGENT) badgeClass = "badge-priority-urgent";
@@ -867,6 +871,55 @@ const App = {
   },
 
   /**
+   * Convert [[Username]] markers in already-escaped text to styled mention chips.
+   * Must be called AFTER escapeHtml() — square brackets are not HTML entities
+   * so the markers survive escaping intact.
+   */
+  renderMentions(escapedText) {
+    if (!escapedText) return "";
+    return escapedText.replace(/\[\[([^\]]+)\]\]/g, (_match, name) => {
+      const safeName = this.escapeHtml(name);
+      return `<span class="mention-tag">${safeName}</span>`;
+    });
+  },
+
+  /**
+   * Render a comment text preview for the table cell.
+   * Splits on [[Name]] markers, renders mentions as chips,
+   * and truncates plain-text segments at maxLen display chars.
+   * Mention chips are treated as atomic — shown in full or not at all.
+   */
+  _renderCommentPreview(text, maxLen) {
+    const parts = text.split(/(\[\[[^\]]+\]\])/);
+    let result = "";
+    let charCount = 0;
+    let wasTruncated = false;
+
+    for (const part of parts) {
+      if (charCount >= maxLen) { wasTruncated = true; break; }
+      const mentionMatch = part.match(/^\[\[([^\]]+)\]\]$/);
+      if (mentionMatch) {
+        const name = mentionMatch[1];
+        result += `<span class="mention-tag">${this.escapeHtml(name)}</span>`;
+        charCount += name.length;
+      } else {
+        const available = maxLen - charCount;
+        if (part.length > available) {
+          result += this.escapeHtml(part.substring(0, available));
+          charCount = maxLen;
+          wasTruncated = true;
+        } else {
+          result += this.escapeHtml(part);
+          charCount += part.length;
+        }
+      }
+    }
+
+    if (wasTruncated) result += "...";
+    return result;
+  },
+
+  /**
    * Bind global events
    */
   bindEvents() {
@@ -924,11 +977,26 @@ const App = {
       }
     });
 
+    // Mentioned me filter checkbox
+    $("#mentionedFilter").on("change", () => {
+      if (this.table) {
+        this.table.draw();
+        this.updateProjectCount();
+      }
+    });
+
     // Deleted projects toggle (admin only)
     $("#deletedProjectsFilter").on("change", () => {
       this.showingDeleted = $("#deletedProjectsFilter").is(":checked");
       $("#projectsTable").toggleClass("deleted-mode", this.showingDeleted);
       this.loadData();
+    });
+
+    // Close mention dropdown when clicking outside a textarea or the dropdown
+    $(document).on("click.mention", (e) => {
+      if (!$(e.target).is("textarea") && !$(e.target).closest("#mentionDropdown").length) {
+        MentionController._hide();
+      }
     });
 
     this.bindCommentsModalFooterEvents();
@@ -1442,6 +1510,7 @@ const App = {
         : "";
 
       const safeText = this.escapeHtml(c.CommentText);
+      const displayText = this.renderMentions(safeText);
 
       return `<div class="comment-card"
           data-comment-id="${c.CommentId}"
@@ -1455,7 +1524,7 @@ const App = {
           ${actionButtons}
         </div>
         <div class="comment-body">
-          <p class="comment-text">${safeText}</p>
+          <p class="comment-text">${displayText}</p>
           <textarea class="comment-edit-textarea hidden">${safeText}</textarea>
           <div class="comment-edit-actions hidden">
             <button class="save-edit-btn btn btn-subtle-success" data-comment-id="${c.CommentId}">שמור</button>
@@ -1481,6 +1550,14 @@ const App = {
     const $body = $("#commentsModalBody");
     // Unbind before rebinding to avoid duplicate handlers
     $body.off("click");
+
+    // Mention autocomplete for inline edit textareas (delegated)
+    $body.off("input.mention keydown.mention", ".comment-edit-textarea");
+    $body.on("input.mention", ".comment-edit-textarea", (e) => {
+      App._mention.activeTextarea = e.currentTarget;
+      MentionController._onInput(e.currentTarget);
+    });
+    $body.on("keydown.mention", ".comment-edit-textarea", (e) => MentionController._onKeydown(e));
 
     // Show inline edit form
     $body.on("click", ".edit-comment-btn", function () {
@@ -1578,6 +1655,8 @@ const App = {
    * Bind add-comment form events in the modal footer (called once from bindEvents)
    */
   bindCommentsModalFooterEvents() {
+    MentionController.attach(document.getElementById("newCommentText"));
+
     $("#toggleAddCommentBtn").on("click", () => {
       const $form = $("#addCommentForm");
       if ($form.hasClass("hidden")) {
@@ -1687,6 +1766,7 @@ const App = {
         : "";
 
       const safeText = this.escapeHtml(c.CommentText);
+      const displayText = this.renderMentions(safeText);
 
       return `<div class="comment-card"
           data-comment-id="${c.CommentId}"
@@ -1700,7 +1780,7 @@ const App = {
           ${actionButtons}
         </div>
         <div class="comment-body">
-          <p class="comment-text">${safeText}</p>
+          <p class="comment-text">${displayText}</p>
           <textarea class="comment-edit-textarea hidden">${safeText}</textarea>
           <div class="comment-edit-actions hidden">
             <button class="save-edit-btn btn btn-subtle-success" data-comment-id="${c.CommentId}">שמור</button>
@@ -1725,6 +1805,14 @@ const App = {
   bindPriceOfferCommentCardEvents() {
     const $body = $("#poCommentsModalBody");
     $body.off("click");
+
+    // Mention autocomplete for inline edit textareas (delegated)
+    $body.off("input.mention keydown.mention", ".comment-edit-textarea");
+    $body.on("input.mention", ".comment-edit-textarea", (e) => {
+      App._mention.activeTextarea = e.currentTarget;
+      MentionController._onInput(e.currentTarget);
+    });
+    $body.on("keydown.mention", ".comment-edit-textarea", (e) => MentionController._onKeydown(e));
 
     $body.on("click", ".edit-comment-btn", function () {
       const $card = $(this).closest(".comment-card");
@@ -1828,6 +1916,8 @@ const App = {
    * Bind add-comment form events in the price offer comments modal footer
    */
   bindPriceOfferCommentsModalFooterEvents() {
+    MentionController.attach(document.getElementById("newPoCommentText"));
+
     $("#toggleAddPoCommentBtn").on("click", () => {
       const $form = $("#addPoCommentForm");
       if ($form.hasClass("hidden")) {
@@ -1895,6 +1985,116 @@ const App = {
       },
     });
     Toast.fire({ icon, title: message });
+  },
+};
+
+/**
+ * MentionController — @mention autocomplete for comment textareas.
+ * Attach to a textarea with MentionController.attach(el).
+ * Uses position:fixed so it works correctly inside overflow:auto modal bodies.
+ */
+const MentionController = {
+
+  attach(textarea) {
+    if (!textarea) return;
+    $(textarea)
+      .off("input.mention keydown.mention")
+      .on("input.mention",   (e) => this._onInput(e.currentTarget))
+      .on("keydown.mention", (e) => this._onKeydown(e));
+  },
+
+  _onInput(textarea) {
+    const val = textarea.value;
+    const pos = textarea.selectionStart;
+
+    // Walk backwards from cursor to find the nearest '@' with no whitespace between
+    let atIdx = -1;
+    for (let i = pos - 1; i >= 0; i--) {
+      if (val[i] === "@") { atIdx = i; break; }
+      if (/\s/.test(val[i])) break;
+    }
+    if (atIdx === -1) { this._hide(); return; }
+
+    const query = val.slice(atIdx + 1, pos).toLowerCase();
+    const allNames = App._cachedUserNames || [];
+    const matches = query === ""
+      ? allNames
+      : allNames.filter(n => n.toLowerCase().includes(query));
+
+    if (!matches.length) { this._hide(); return; }
+
+    App._mention.activeTextarea = textarea;
+    App._mention.atIndex        = atIdx;
+    App._mention.items          = matches;
+    App._mention.activeIndex    = -1;
+    this._show(textarea, matches);
+  },
+
+  _onKeydown(e) {
+    const $dd = $("#mentionDropdown");
+    if ($dd.hasClass("hidden")) return;
+    const key = e.key;
+    if (key === "ArrowDown" || key === "ArrowUp") {
+      e.preventDefault();
+      const count = App._mention.items.length;
+      let idx = App._mention.activeIndex;
+      idx = key === "ArrowDown" ? Math.min(idx + 1, count - 1) : Math.max(idx - 1, 0);
+      App._mention.activeIndex = idx;
+      this._highlightItem(idx);
+    } else if (key === "Enter" || key === "Tab") {
+      if (App._mention.activeIndex < 0) return;
+      e.preventDefault();
+      this._selectItem(App._mention.items[App._mention.activeIndex]);
+    } else if (key === "Escape") {
+      this._hide();
+    }
+  },
+
+  _show(textarea, names) {
+    const $dd = $("#mentionDropdown").empty();
+    names.forEach((name, i) => {
+      $("<div>")
+        .addClass("mention-dropdown-item")
+        .attr("data-index", i)
+        .text(name)
+        .on("mousedown", (e) => { e.preventDefault(); this._selectItem(name); })
+        .appendTo($dd);
+    });
+    const rect = textarea.getBoundingClientRect();
+    $dd.css({
+      top:   (rect.bottom + 4) + "px",
+      left:  rect.left + "px",
+      width: Math.max(rect.width, 200) + "px",
+    });
+    $dd.removeClass("hidden");
+  },
+
+  _hide() {
+    $("#mentionDropdown").addClass("hidden").empty();
+    App._mention.activeIndex = -1;
+    App._mention.atIndex     = -1;
+    App._mention.items       = [];
+  },
+
+  _highlightItem(idx) {
+    const $items = $("#mentionDropdown .mention-dropdown-item");
+    $items.removeClass("active");
+    $items.eq(idx).addClass("active").get(0)?.scrollIntoView({ block: "nearest" });
+  },
+
+  _selectItem(name) {
+    const textarea = App._mention.activeTextarea;
+    if (!textarea) return;
+    const val    = textarea.value;
+    const atIdx  = App._mention.atIndex;
+    const pos    = textarea.selectionStart;
+    const before = val.slice(0, atIdx);
+    const after  = val.slice(pos);
+    textarea.value = before + "[[" + name + "]] " + after;
+    const newPos = (before + "[[" + name + "]] ").length;
+    textarea.setSelectionRange(newPos, newPos);
+    textarea.focus();
+    this._hide();
   },
 };
 

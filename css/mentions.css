@@ -1,0 +1,68 @@
+/* ==========================================
+   Mentions — Autocomplete Dropdown & Rendered Tag
+   ========================================== */
+
+/* Inline mention chip shown in rendered comment text */
+.mention-tag {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-radius: 4px;
+  padding: 0 5px;
+  font-size: 0.85em;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+/* Floating autocomplete dropdown */
+.mention-dropdown {
+  position: fixed;
+  z-index: 1200;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  max-height: 220px;
+  overflow-y: auto;
+  min-width: 180px;
+  padding: 4px 0;
+  direction: rtl;
+}
+
+.mention-dropdown-item {
+  padding: 8px 14px;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+
+.mention-dropdown-item:hover,
+.mention-dropdown-item.active {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+/* Dark mode */
+[data-theme="dark"] .mention-tag {
+  background: #1e3a6a;
+  color: #93c5fd;
+}
+
+[data-theme="dark"] .mention-dropdown {
+  background: #1e2436;
+  border-color: #2a3045;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .mention-dropdown-item {
+  color: #d1d5db;
+}
+
+[data-theme="dark"] .mention-dropdown-item:hover,
+[data-theme="dark"] .mention-dropdown-item.active {
+  background: #1e2a4a;
+  color: #93c5fd;
+}
