@@ -969,24 +969,40 @@ const App = {
       e.stopPropagation();
     });
 
-    // My projects filter checkbox
+    // My projects filter — mutually exclusive with all other filters
     $("#myProjectsFilter").on("change", () => {
+      if ($("#myProjectsFilter").is(":checked")) {
+        $("#mentionedFilter").prop("checked", false);
+        if ($("#deletedProjectsFilter").is(":checked")) {
+          $("#deletedProjectsFilter").prop("checked", false);
+          this.showingDeleted = false;
+          $("#projectsTable").removeClass("deleted-mode");
+          this.loadData();
+          return;
+        }
+      }
       if (this.table) {
         this.table.draw();
         this.updateProjectCount();
       }
     });
 
-    // Mentioned me filter checkbox
+    // Mentioned me filter — uncheck myProjectsFilter when activated
     $("#mentionedFilter").on("change", () => {
+      if ($("#mentionedFilter").is(":checked")) {
+        $("#myProjectsFilter").prop("checked", false);
+      }
       if (this.table) {
         this.table.draw();
         this.updateProjectCount();
       }
     });
 
-    // Deleted projects toggle (admin only)
+    // Deleted projects toggle (admin only) — uncheck myProjectsFilter when activated
     $("#deletedProjectsFilter").on("change", () => {
+      if ($("#deletedProjectsFilter").is(":checked")) {
+        $("#myProjectsFilter").prop("checked", false);
+      }
       this.showingDeleted = $("#deletedProjectsFilter").is(":checked");
       $("#projectsTable").toggleClass("deleted-mode", this.showingDeleted);
       this.loadData();
@@ -1017,6 +1033,8 @@ const App = {
     });
 
     enhanceAllSelects(document.getElementById("addProjectModal"));
+
+    MentionController.attach(document.getElementById("newInitialComment"));
 
     $("#addProjectModal").addClass("show");
   },
