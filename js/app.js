@@ -969,7 +969,7 @@ const App = {
       e.stopPropagation();
     });
 
-    // My projects filter — mutually exclusive with all other filters
+    // My projects filter — only one filter active at a time
     $("#myProjectsFilter").on("change", () => {
       if ($("#myProjectsFilter").is(":checked")) {
         $("#mentionedFilter").prop("checked", false);
@@ -987,10 +987,17 @@ const App = {
       }
     });
 
-    // Mentioned me filter — uncheck myProjectsFilter when activated
+    // Mentioned me filter — only one filter active at a time
     $("#mentionedFilter").on("change", () => {
       if ($("#mentionedFilter").is(":checked")) {
         $("#myProjectsFilter").prop("checked", false);
+        if ($("#deletedProjectsFilter").is(":checked")) {
+          $("#deletedProjectsFilter").prop("checked", false);
+          this.showingDeleted = false;
+          $("#projectsTable").removeClass("deleted-mode");
+          this.loadData();
+          return;
+        }
       }
       if (this.table) {
         this.table.draw();
@@ -998,10 +1005,11 @@ const App = {
       }
     });
 
-    // Deleted projects toggle (admin only) — uncheck myProjectsFilter when activated
+    // Deleted projects toggle (admin only) — only one filter active at a time
     $("#deletedProjectsFilter").on("change", () => {
       if ($("#deletedProjectsFilter").is(":checked")) {
         $("#myProjectsFilter").prop("checked", false);
+        $("#mentionedFilter").prop("checked", false);
       }
       this.showingDeleted = $("#deletedProjectsFilter").is(":checked");
       $("#projectsTable").toggleClass("deleted-mode", this.showingDeleted);
