@@ -313,6 +313,12 @@
   color: #9ca3af;
 }
 
+[data-theme="dark"] .foreign-project-notice {
+  background: #2d1f00;
+  color: #fbbf24;
+  border-color: #4a3300;
+}
+
 [data-theme="dark"] .comments-empty {
   color: #6b7280;
 }

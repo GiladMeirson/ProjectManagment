@@ -1491,6 +1491,12 @@ const App = {
     $("#commentsModalOwnerBadge")
       .text(isForeignProject ? `פרויקט של ${this._currentCommentsProjectAssignedTo}` : "")
       .toggleClass("hidden", !isForeignProject);
+
+    // Indication 2: notice above the composer, revealed whenever the add-comment form is opened
+    $("#commentsModalForeignNotice")
+      .text(isForeignProject ? `הערה זו תתווסף לפרויקט של ${this._currentCommentsProjectAssignedTo}` : "")
+      .toggleClass("hidden", !isForeignProject);
+
     $("#commentsModal").addClass("show");
     this.loadComments(projectId);
   },

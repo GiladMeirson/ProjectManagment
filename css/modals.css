@@ -291,6 +291,19 @@
 }
 
 /* Add comment form in footer */
+.foreign-project-notice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
 .add-comment-form textarea {
   width: 100%;
   box-sizing: border-box;
