@@ -156,9 +156,9 @@
 }
 
 [data-theme="dark"] .badge-foreign-project {
-  background: #2d1f00;
-  color: #fbbf24;
-  border-color: #4a3300;
+  background: #2b1600;
+  color: #fb923c;
+  border-color: #5c2e0a;
 }
 
 /* Status */
@@ -314,9 +314,9 @@
 }
 
 [data-theme="dark"] .foreign-project-notice {
-  background: #2d1f00;
-  color: #fbbf24;
-  border-color: #4a3300;
+  background: #2b1600;
+  color: #fb923c;
+  border-color: #5c2e0a;
 }
 
 [data-theme="dark"] .comments-empty {
