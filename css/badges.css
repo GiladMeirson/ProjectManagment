@@ -32,6 +32,13 @@
   border: 1px solid var(--gray-300);
 }
 
+/* ---- Foreign project indicator ---- */
+.badge-foreign-project {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
 /* ---- Status ---- */
 .badge-status-waiting {
   background: #dfe7ff;

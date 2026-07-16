@@ -1484,6 +1484,13 @@ const App = {
     $("#toggleAddCommentBtn").text("+ הוסף הערה");
     // Any authenticated user (admin or not) may add a comment to any project
     $("#toggleAddCommentBtn").removeClass("hidden");
+
+    // Indication 1: badge showing the project owner when it's not the viewer's project
+    const isForeignProject = !!this._currentCommentsProjectAssignedTo
+      && this._currentCommentsProjectAssignedTo !== this.currentUser.username;
+    $("#commentsModalOwnerBadge")
+      .text(isForeignProject ? `פרויקט של ${this._currentCommentsProjectAssignedTo}` : "")
+      .toggleClass("hidden", !isForeignProject);
     $("#commentsModal").addClass("show");
     this.loadComments(projectId);
   },
