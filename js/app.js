@@ -354,7 +354,6 @@ const App = {
           data: "PriceOfferStatus",
           title: "סטטוס הצעת מחיר",
           className: "price-offer-status-cell centered-cell",
-          visible: Auth.isAdmin(),
           render: (data) => {
             const val = data || PRICE_OFFER_STATUS.WAITING;
             const cls = PRICE_OFFER_STATUS_BADGE_MAP[val] ?? "badge-default";
@@ -1182,6 +1181,7 @@ const App = {
    */
   hideModal() {
     $(".modal-overlay").removeClass("show");
+    MentionController._hide();
   },
 
   /**
@@ -1456,8 +1456,6 @@ const App = {
    */
   canModifyComment(comment) {
     if (Auth.isAdmin()) return true;
-    const isMyProject = this._currentCommentsProjectAssignedTo === this.currentUser.username;
-    if (!isMyProject) return false;
     return Number(comment.UserId) === Number(this.currentUser.userId);
   },
 
@@ -1484,9 +1482,8 @@ const App = {
     $("#addCommentForm").addClass("hidden");
     $("#newCommentText").val("");
     $("#toggleAddCommentBtn").text("+ הוסף הערה");
-    // Show "add comment" button only if admin or project is assigned to current user
-    const canAdd = Auth.isAdmin() || this._currentCommentsProjectAssignedTo === this.currentUser.username;
-    $("#toggleAddCommentBtn").toggleClass("hidden", !canAdd);
+    // Any authenticated user (admin or not) may add a comment to any project
+    $("#toggleAddCommentBtn").removeClass("hidden");
     $("#commentsModal").addClass("show");
     this.loadComments(projectId);
   },
